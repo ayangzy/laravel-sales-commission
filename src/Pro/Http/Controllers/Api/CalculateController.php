@@ -122,13 +122,29 @@ class CalculateController extends Controller
         };
 
         try {
-            $earning = $this->calculator->forPlan($plan)->calculate($commissionable, $agent);
+            // Create a fresh calculator instance to avoid singleton state issues
+            $calculator = new CommissionCalculator();
+            $earning = $calculator->forPlan($plan)->calculate($commissionable, $agent);
 
             if (!$earning) {
+                // Provide detailed debugging info
+                $debugInfo = [
+                    'plan_found' => true,
+                    'plan_id' => $plan->id,
+                    'plan_slug' => $plan->slug,
+                    'plan_active' => (bool) $plan->is_active,
+                    'rules_count' => $plan->rules()->where('is_active', true)->count(),
+                    'tiers_count' => $plan->tiers()->count(),
+                    'amount_provided' => $validated['amount'],
+                    'agent_found' => true,
+                ];
+                
                 return response()->json([
                     'success' => false,
-                    'message' => 'Commission could not be calculated. Please check your plan has rules configured.',
+                    'message' => 'Commission could not be calculated. See debug info for details.',
                     'error_code' => 'CALCULATION_FAILED',
+                    'debug' => $debugInfo,
+                    'help' => 'Ensure: 1) Plan has active rules, 2) Agent exists, 3) Amount > 0',
                 ], 422);
             }
 
@@ -142,6 +158,7 @@ class CalculateController extends Controller
                 'success' => false,
                 'message' => 'Error calculating commission: ' . $e->getMessage(),
                 'error_code' => 'CALCULATION_ERROR',
+                'exception_type' => get_class($e),
             ], 500);
         }
     }

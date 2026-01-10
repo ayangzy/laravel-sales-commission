@@ -38,6 +38,7 @@ class CalculateController extends Controller
         if (!empty($validated['plan'])) {
             $plan = CommissionPlan::where('slug', $validated['plan'])
                 ->orWhere('id', $validated['plan'])
+                ->orWhere('name', $validated['plan'])
                 ->first();
             
             if (!$plan) {

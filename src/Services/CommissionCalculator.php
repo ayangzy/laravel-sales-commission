@@ -72,6 +72,7 @@ class CommissionCalculator
         $commissionAmount = $this->applyRules($rules, $baseAmount, $tier, $commissionable, $agent);
 
         // Create earning record
+        $earnedAt = $this->getCommissionDate($commissionable);
         $earning = CommissionEarning::create([
             'agent_type' => get_class($agent),
             'agent_id' => $agent->getKey(),
@@ -82,10 +83,11 @@ class CommissionCalculator
             'rule_id' => $rules->first()?->id,
             'base_amount' => $baseAmount,
             'commission_amount' => $commissionAmount,
-            'rate_applied' => $this->getAppliedRate($rules, $tier),
+            'rate' => $this->getAppliedRate($rules, $tier),
             'rate_type' => $this->getAppliedRateType($rules, $tier),
             'status' => CommissionEarning::STATUS_PENDING,
-            'earned_at' => $this->getCommissionDate($commissionable),
+            'period' => $earnedAt->format('Y-m'),
+            'earned_at' => $earnedAt,
             'metadata' => $this->buildMetadata($commissionable, $agent),
         ]);
 

@@ -36,11 +36,12 @@ return new class extends Migration
             // Amounts
             $table->decimal('base_amount', 15, 2);
             $table->decimal('commission_amount', 15, 2);
-            $table->decimal('rate_applied', 8, 4)->nullable();
+            $table->decimal('rate', 8, 4)->nullable(); // Commission rate applied
             $table->string('rate_type')->nullable(); // percentage, fixed
             
             // Status and lifecycle
             $table->string('status')->default('pending');
+            $table->string('period')->nullable()->index(); // YYYY-MM format for period tracking
             $table->timestamp('earned_at');
             $table->timestamp('approved_at')->nullable();
             $table->unsignedBigInteger('approved_by')->nullable();

@@ -62,8 +62,8 @@ class SalesCommissionServiceProvider extends ServiceProvider
         // Register Blade directives for Pro features
         $this->registerBladeDirectives();
 
-        // Load Pro features if licensed
-        $this->bootProFeatures();
+        // Load Pro routes if licensed
+        $this->bootProRoutes();
     }
 
     /**
@@ -77,33 +77,17 @@ class SalesCommissionServiceProvider extends ServiceProvider
     }
 
     /**
-     * Boot Pro features if license is valid.
+     * Boot Pro routes if license is valid.
      */
-    protected function bootProFeatures(): void
+    protected function bootProRoutes(): void
     {
-        $license = app(LicenseManager::class);
-
-        if (!$license->isValid()) {
-            return;
-        }
-
-        // Load Pro routes
+        // Only load routes, Filament resources are handled by the plugin
         if (file_exists(__DIR__ . '/Pro/routes/api.php')) {
-            $this->loadRoutesFrom(__DIR__ . '/Pro/routes/api.php');
+            if (app(LicenseManager::class)->isValid()) {
+                $this->loadRoutesFrom(__DIR__ . '/Pro/routes/api.php');
+            }
         }
-
-        // Register Filament resources if Filament is installed
-        if (class_exists(\Filament\FilamentServiceProvider::class)) {
-            $this->bootFilamentResources();
-        }
-    }
-
-    /**
-     * Boot Filament admin panel resources.
-     */
-    protected function bootFilamentResources(): void
-    {
-        // Filament resources will be registered here
     }
 }
+
 

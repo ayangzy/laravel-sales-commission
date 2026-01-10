@@ -6,17 +6,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use SalesCommission\Models\CommissionSplit;
-use SalesCommission\Services\SplitCalculator;
 use SalesCommission\Pro\Http\Resources\CommissionSplitResource;
 
 class CommissionSplitController extends Controller
 {
-    protected SplitCalculator $splitCalculator;
-
-    public function __construct(SplitCalculator $splitCalculator)
-    {
-        $this->splitCalculator = $splitCalculator;
-    }
 
     /**
      * List all commission splits.

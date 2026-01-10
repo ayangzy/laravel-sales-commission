@@ -46,13 +46,13 @@ Route::prefix('api/commissions')
         Route::get('earnings/by-agent/{agent}', [CommissionEarningController::class, 'byAgent']);
         Route::get('earnings/by-period/{period}', [CommissionEarningController::class, 'byPeriod']);
         
-        // Payouts
+        // Payouts - specific routes MUST come before resource routes
+        Route::get('payouts/pending', [PayoutController::class, 'pending']);
+        Route::post('payouts/generate', [PayoutController::class, 'generate']);
         Route::apiResource('payouts', PayoutController::class)->only(['index', 'show', 'store']);
         Route::post('payouts/{payout}/approve', [PayoutController::class, 'approve']);
         Route::post('payouts/{payout}/reject', [PayoutController::class, 'reject']);
         Route::post('payouts/{payout}/process', [PayoutController::class, 'process']);
-        Route::get('payouts/pending', [PayoutController::class, 'pending']);
-        Route::post('payouts/generate', [PayoutController::class, 'generate']);
         
         // Clawbacks
         Route::get('clawbacks', [ClawbackController::class, 'index']);

@@ -15,6 +15,7 @@ class CommissionEarning extends Model
 
     public const STATUS_PENDING = 'pending';
     public const STATUS_APPROVED = 'approved';
+    public const STATUS_PAYABLE = 'payable';
     public const STATUS_HELD = 'held';
     public const STATUS_PAID = 'paid';
     public const STATUS_CLAWED_BACK = 'clawed_back';

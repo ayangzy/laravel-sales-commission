@@ -127,24 +127,25 @@ class CalculateController extends Controller
             $earning = $calculator->forPlan($plan)->calculate($commissionable, $agent);
 
             if (!$earning) {
-                // Provide detailed debugging info
-                $debugInfo = [
-                    'plan_found' => true,
-                    'plan_id' => $plan->id,
-                    'plan_slug' => $plan->slug,
-                    'plan_active' => (bool) $plan->is_active,
-                    'rules_count' => $plan->rules()->where('is_active', true)->count(),
-                    'tiers_count' => $plan->tiers()->count(),
-                    'amount_provided' => $validated['amount'],
-                    'agent_found' => true,
-                ];
+                // Build specific error message
+                $rulesCount = $plan->rules()->where('is_active', true)->count();
+                $tiersCount = $plan->tiers()->count();
+                
+                $reasons = [];
+                if ($rulesCount === 0 && $tiersCount === 0) {
+                    $reasons[] = "Plan '{$plan->name}' has no commission rules or tiers configured";
+                } elseif ($rulesCount === 0) {
+                    $reasons[] = "Plan '{$plan->name}' has no active commission rules";
+                }
+                
+                $message = count($reasons) > 0 
+                    ? implode('. ', $reasons) . '. Please add rules or tiers to calculate commissions.'
+                    : 'Commission calculation failed. Please verify the plan configuration.';
                 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Commission could not be calculated. See debug info for details.',
+                    'message' => $message,
                     'error_code' => 'CALCULATION_FAILED',
-                    'debug' => $debugInfo,
-                    'help' => 'Ensure: 1) Plan has active rules, 2) Agent exists, 3) Amount > 0',
                 ], 422);
             }
 

@@ -358,7 +358,6 @@ If this package helps you, please consider:
 
 - ⭐ **Star this repo** - It helps others discover the project
 - 💖 **[Sponsor on GitHub](https://github.com/sponsors/ayangzy)** - Support ongoing development
-- ☕ **[Buy me a coffee](https://www.buymeacoffee.com/ayangzy)** - One-time support
 
 ## Author
 

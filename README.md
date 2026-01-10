@@ -1,0 +1,307 @@
+# Laravel Sales Commission
+
+A comprehensive, enterprise-grade commission calculation and management package for Laravel SaaS applications.
+
+[![Tests](https://github.com/ayangzy/laravel-sales-commission/actions/workflows/tests.yml/badge.svg)](https://github.com/ayangzy/laravel-sales-commission/actions/workflows/tests.yml)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/ayangzy/laravel-sales-commission.svg?style=flat-square)](https://packagist.org/packages/ayangzy/laravel-sales-commission)
+[![Total Downloads](https://img.shields.io/packagist/dt/ayangzy/laravel-sales-commission.svg?style=flat-square)](https://packagist.org/packages/ayangzy/laravel-sales-commission)
+[![License](https://img.shields.io/packagist/l/ayangzy/laravel-sales-commission.svg?style=flat-square)](LICENSE.md)
+
+## Features
+
+- 🎯 **Flexible Commission Plans** - Create multiple plans with different rules
+- 📊 **Multi-Tier Structures** - Bronze, Silver, Gold tier progression
+- 👥 **Team Split Commissions** - Divide commissions among team members
+- 🔄 **Clawback Support** - Handle refunds and chargebacks gracefully
+- 💰 **Payout Management** - Generate, approve, and process payouts
+- 📈 **Performance Bonuses** - Reward milestone achievements
+- 🎛️ **Extensible Rule Engine** - Create custom commission rules
+- 📅 **Period-Based Tracking** - Weekly, monthly, quarterly reporting
+
+## Requirements
+
+- PHP 8.2+
+- Laravel 10.x or 11.x
+
+## Installation
+
+```bash
+composer require ayangzy/laravel-sales-commission
+```
+
+Publish the configuration and migrations:
+
+```bash
+php artisan vendor:publish --tag="sales-commission-config"
+php artisan vendor:publish --tag="sales-commission-migrations"
+php artisan migrate
+```
+
+## Quick Start
+
+### 1. Add Traits to Your Models
+
+**User/Agent Model:**
+
+```php
+use SalesCommission\Traits\HasCommissions;
+
+class User extends Model
+{
+    use HasCommissions;
+}
+```
+
+**Order/Sale Model:**
+
+```php
+use SalesCommission\Traits\Commissionable;
+
+class Order extends Model
+{
+    use Commissionable;
+
+    public function getCommissionableAmount(): float
+    {
+        return $this->total;
+    }
+
+    public function getCommissionAgent(): ?Model
+    {
+        return $this->salesRep;
+    }
+}
+```
+
+### 2. Create a Commission Plan
+
+```php
+use SalesCommission\Models\CommissionPlan;
+use SalesCommission\Models\CommissionTier;
+use SalesCommission\Models\CommissionRule;
+
+// Create a plan
+$plan = CommissionPlan::create([
+    'name' => 'Standard Sales Plan',
+    'slug' => 'standard',
+    'is_active' => true,
+    'is_default' => true,
+]);
+
+// Add tiers
+$plan->tiers()->createMany([
+    ['name' => 'Bronze', 'min_threshold' => 0, 'max_threshold' => 10000, 'rate' => 5],
+    ['name' => 'Silver', 'min_threshold' => 10001, 'max_threshold' => 50000, 'rate' => 7.5],
+    ['name' => 'Gold', 'min_threshold' => 50001, 'max_threshold' => null, 'rate' => 10],
+]);
+
+// Add a rule
+$plan->rules()->create([
+    'name' => 'Standard Commission',
+    'type' => 'percentage',
+    'value' => 10, // 10%
+    'is_active' => true,
+]);
+```
+
+### 3. Calculate Commissions
+
+```php
+use SalesCommission\Facades\Commission;
+
+// Calculate commission for a sale
+$earning = Commission::calculate($order);
+
+// Or with a specific agent
+$earning = Commission::calculate($order, $salesRep);
+
+// Use a specific plan
+$earning = Commission::forPlan('enterprise')
+    ->calculate($order);
+
+// Bulk calculation
+$earnings = Commission::calculateBatch($orders);
+```
+
+### 4. Team Split Commissions
+
+```php
+Commission::split($order)
+    ->between([
+        $primaryRep => ['percentage' => 60, 'role' => 'primary'],
+        $supportRep => ['percentage' => 25, 'role' => 'support'],
+        $manager => ['percentage' => 15, 'role' => 'manager'],
+    ])
+    ->calculate();
+```
+
+### 5. Handle Clawbacks
+
+```php
+use SalesCommission\Services\ClawbackService;
+
+$clawbackService = app(ClawbackService::class);
+
+// Full clawback
+$clawback = $clawbackService->clawback($earning, 'refund');
+
+// Partial clawback
+$clawback = $clawbackService->partialClawback($earning, 50.00, 'partial_refund');
+
+// Clawback all commissions for an order
+$clawbacks = $clawbackService->clawbackForCommissionable($order, 'chargeback');
+```
+
+### 6. Process Payouts
+
+```php
+use SalesCommission\Models\Payout;
+
+// Generate payout for current period
+$payout = Payout::generate('2026-01');
+
+// Approve and process
+$payout->approve(auth()->id());
+$payout->markAsPaid([
+    'reference' => 'PAY-12345',
+    'method' => 'stripe',
+]);
+```
+
+Or use the artisan command:
+
+```bash
+php artisan commission:process-payouts --period=2026-01
+```
+
+## Events
+
+Listen to commission events in your application:
+
+```php
+// EventServiceProvider
+protected $listen = [
+    \SalesCommission\Events\CommissionEarned::class => [
+        NotifySalesRep::class,
+        UpdateLeaderboard::class,
+    ],
+    \SalesCommission\Events\CommissionClawedBack::class => [
+        NotifyFinanceTeam::class,
+    ],
+    \SalesCommission\Events\PayoutProcessed::class => [
+        SendPayoutConfirmation::class,
+    ],
+    \SalesCommission\Events\TierAchieved::class => [
+        CelebrateTierUpgrade::class,
+    ],
+];
+```
+
+## Artisan Commands
+
+```bash
+# Process payouts
+php artisan commission:process-payouts --period=2024-01
+php artisan commission:process-payouts --dry-run
+
+# Recalculate tiers
+php artisan commission:recalculate-tiers --all
+php artisan commission:recalculate-tiers --plan=standard
+```
+
+## Configuration
+
+See `config/sales-commission.php` for all options:
+
+```php
+return [
+    'models' => [
+        'agent' => App\Models\User::class,
+    ],
+
+    'clawback' => [
+        'enabled' => true,
+        'grace_period_days' => 30,
+        'auto_on_refund' => true,
+    ],
+
+    'payout' => [
+        'min_threshold' => 50.00,
+        'auto_approve' => false,
+        'schedule' => 'monthly',
+        'hold_period_days' => 14,
+    ],
+
+    'currency' => 'USD',
+];
+```
+
+## Custom Rules
+
+Create custom commission rules:
+
+```php
+use SalesCommission\Rules\BaseRule;
+use SalesCommission\Contracts\Commissionable;
+use SalesCommission\Contracts\CommissionAgent;
+
+class FirstSaleBonusRule extends BaseRule
+{
+    public function getType(): string
+    {
+        return 'first_sale_bonus';
+    }
+
+    public function calculate(Commissionable $commissionable, CommissionAgent $agent, array $context = []): float
+    {
+        // Check if this is the agent's first sale
+        if ($agent->commissionEarnings()->count() === 0) {
+            return 100.00; // $100 bonus
+        }
+
+        return 0;
+    }
+}
+```
+
+## Testing
+
+```bash
+composer test
+```
+
+## Pro Version
+
+Need advanced features? Check out [Laravel Sales Commission Pro](docs/PRO.md):
+
+- 🎨 Admin Dashboard (Filament)
+- 📊 Advanced Reporting & Analytics
+- 💱 Multi-Currency Support
+- 📅 Scheduled & Recurring Commissions
+- 🔌 API Endpoints
+- 📧 Priority Support
+
+[Learn more about Pro →](docs/PRO.md)
+
+## Support the Project
+
+If this package helps you, please consider:
+
+- ⭐ **Star this repo** - It helps others discover the project
+- 💖 **[Sponsor on GitHub](https://github.com/sponsors/ayangzy)** - Support ongoing development
+- ☕ **[Buy me a coffee](https://www.buymeacoffee.com/ayangzy)** - One-time support
+- 🐛 **Report bugs** - Help improve the package
+- 📝 **Contribute** - PRs are welcome!
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+## Credits
+
+- [Ayangzy](https://github.com/ayangzy)
+- [All Contributors](../../contributors)
+
+## License
+
+The MIT License (MIT). Please see [LICENSE.md](LICENSE.md) for more information.

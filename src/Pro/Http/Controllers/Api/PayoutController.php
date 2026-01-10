@@ -195,8 +195,8 @@ class PayoutController extends Controller
         }
 
         $payout->markAsPaid([
-            'payment_reference' => $validated['payment_reference'] ?? null,
-            'payment_method' => $validated['payment_method'] ?? null,
+            'reference' => $validated['payment_reference'] ?? null,
+            'method' => $validated['payment_method'] ?? null,
             'processed_by' => $request->user()?->id,
         ]);
 

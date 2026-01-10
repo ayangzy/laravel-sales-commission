@@ -56,6 +56,7 @@ class SalesCommissionServiceProvider extends ServiceProvider
             $this->commands([
                 Commands\ProcessPayouts::class,
                 Commands\RecalculateTiers::class,
+                Commands\GenerateLicenseKey::class,
             ]);
         }
 

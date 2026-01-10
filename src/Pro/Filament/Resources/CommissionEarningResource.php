@@ -104,8 +104,31 @@ class CommissionEarningResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\Action::make('markPayable')
+                    ->label('Mark Payable')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Mark as Payable')
+                    ->modalDescription('This will mark the earning as ready for payout. Continue?')
+                    ->visible(fn (CommissionEarning $record) => $record->status === CommissionEarning::STATUS_PENDING)
+                    ->action(function (CommissionEarning $record) {
+                        $record->update(['status' => CommissionEarning::STATUS_PAYABLE]);
+                    })
+                    ->successNotificationTitle('Earning marked as payable'),
             ])
-            ->bulkActions([]);
+            ->bulkActions([
+                Tables\Actions\BulkAction::make('markPayable')
+                    ->label('Mark as Payable')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->deselectRecordsAfterCompletion()
+                    ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                        $records->each(fn ($record) => $record->update(['status' => CommissionEarning::STATUS_PAYABLE]));
+                    })
+                    ->successNotificationTitle('Earnings marked as payable'),
+            ]);
     }
 
     public static function getPages(): array

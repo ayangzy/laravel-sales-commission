@@ -71,13 +71,28 @@ class CommissionCalculator
         // Calculate commission
         $commissionAmount = $this->applyRules($rules, $baseAmount, $tier, $commissionable, $agent);
 
+        // Don't create earning if commission is 0 (no applicable rules)
+        if ($commissionAmount <= 0 && $rules->isEmpty() && !$tier) {
+            return null;
+        }
+
+        // Get commissionable type (prefer getMorphClass method if available)
+        $commissionableType = method_exists($commissionable, 'getMorphClass') 
+            ? $commissionable->getMorphClass() 
+            : get_class($commissionable);
+
+        // Get commissionable ID (prefer getKey method)
+        $commissionableId = method_exists($commissionable, 'getKey')
+            ? $commissionable->getKey()
+            : ($commissionable->id ?? null);
+
         // Create earning record
         $earnedAt = $this->getCommissionDate($commissionable);
         $earning = CommissionEarning::create([
             'agent_type' => get_class($agent),
             'agent_id' => $agent->getKey(),
-            'commissionable_type' => get_class($commissionable),
-            'commissionable_id' => $commissionable->getKey(),
+            'commissionable_type' => $commissionableType,
+            'commissionable_id' => $commissionableId,
             'plan_id' => $plan->id,
             'tier_id' => $tier?->id,
             'rule_id' => $rules->first()?->id,

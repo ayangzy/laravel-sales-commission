@@ -1,22 +1,91 @@
 # Laravel Sales Commission
 
-A comprehensive, enterprise-grade commission calculation and management package for Laravel SaaS applications.
-
 [![Tests](https://github.com/ayangzy/laravel-sales-commission/actions/workflows/tests.yml/badge.svg)](https://github.com/ayangzy/laravel-sales-commission/actions/workflows/tests.yml)
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/ayangzy/laravel-sales-commission.svg?style=flat-square)](https://packagist.org/packages/ayangzy/laravel-sales-commission)
 [![Total Downloads](https://img.shields.io/packagist/dt/ayangzy/laravel-sales-commission.svg?style=flat-square)](https://packagist.org/packages/ayangzy/laravel-sales-commission)
 [![License](https://img.shields.io/packagist/l/ayangzy/laravel-sales-commission.svg?style=flat-square)](LICENSE.md)
 
-## Features
+## What is Laravel Sales Commission?
 
-- 🎯 **Flexible Commission Plans** - Create multiple plans with different rules
-- 📊 **Multi-Tier Structures** - Bronze, Silver, Gold tier progression
-- 👥 **Team Split Commissions** - Divide commissions among team members
-- 🔄 **Clawback Support** - Handle refunds and chargebacks gracefully
-- 💰 **Payout Management** - Generate, approve, and process payouts
-- 📈 **Performance Bonuses** - Reward milestone achievements
-- 🎛️ **Extensible Rule Engine** - Create custom commission rules
-- 📅 **Period-Based Tracking** - Weekly, monthly, quarterly reporting
+**Laravel Sales Commission** is a comprehensive, enterprise-grade commission calculation and management package designed specifically for Laravel SaaS applications. It provides a complete solution for businesses that need to track, calculate, and pay commissions to sales representatives, affiliates, partners, or any type of agent.
+
+Unlike simple percentage calculators, this package handles the **entire commission lifecycle** — from initial calculation through clawbacks (refunds) to final payout processing. It's built to handle real-world complexity including team-based sales, tiered commission structures, and flexible payout schedules.
+
+Whether you're building an e-commerce platform with sales reps, a SaaS with an affiliate program, or a network marketing application, this package provides the foundation you need without reinventing the wheel.
+
+---
+
+## Key Features
+
+### 🎯 Flexible Commission Plans
+
+Create unlimited commission plans tailored to different agent types, products, or sales channels. Each plan can have its own rules, tiers, and payout settings. Perfect for businesses with diverse sales structures — one plan for in-house sales reps, another for external affiliates.
+
+### 📊 Multi-Tier Commission Structures
+
+Implement progressive commission rates that reward high performers. Agents automatically move through tiers (e.g., Bronze → Silver → Gold) as their cumulative sales increase, unlocking higher commission percentages. This incentivizes continuous performance improvement.
+
+### 👥 Team Split Commissions
+
+Handle complex team sales where multiple agents contribute to a deal. Split commissions by percentage with role tracking (primary closer, supporting rep, manager override). Ensures fair attribution when sales involve collaboration.
+
+### 🔄 Clawback Support
+
+Protect your business when sales are refunded or charged back. The clawback system reverses commissions proportionally with configurable grace periods. Supports full clawbacks, partial clawbacks, and automatic clawbacks on refund events.
+
+### 💰 Payout Management
+
+Complete payout lifecycle management — generate payout batches, require approval workflows, process payments, and track payment status. Supports configurable payout schedules (weekly, bi-weekly, monthly) and minimum payout thresholds.
+
+### 📈 Performance Bonuses
+
+Reward agents for hitting milestones with bonus rules. Configure one-time or recurring bonuses when agents reach sales targets, close their first deal, or achieve tier upgrades.
+
+### 🎛️ Extensible Rule Engine
+
+The modular rule system supports percentage-based, flat-rate, tiered, and conditional commissions out of the box. Need custom logic? Extend the base rule class to implement any commission formula your business requires.
+
+### 📅 Period-Based Tracking
+
+All earnings are tracked by period (week, month, quarter) enabling accurate reporting, forecasting, and historical analysis. Easily query earnings for any time range.
+
+### ⚡ Event-Driven Architecture
+
+Hooks into Laravel's event system. Listen to `CommissionEarned`, `CommissionClawedBack`, `PayoutProcessed`, and `TierAchieved` events to trigger notifications, update leaderboards, or integrate with external systems.
+
+---
+
+## Use Cases
+
+### Who Needs This Package?
+
+| Platform Type                    | Why You Need It                                                       |
+| -------------------------------- | --------------------------------------------------------------------- |
+| **E-commerce with Sales Reps**   | Track commissions per order, handle returns/refunds, pay reps monthly |
+| **SaaS with Affiliate Programs** | Recurring commissions on subscriptions, clawback on cancellations     |
+| **Marketplace Platforms**        | Split commissions between sellers, platform, and referrers            |
+| **Insurance & Real Estate**      | Complex tiered structures, team overrides, compliance-ready           |
+| **Network Marketing / MLM**      | Multi-level commission trees, performance tiers, bonus structures     |
+| **Recruitment Agencies**         | Placement fees, split commissions, clawback on early termination      |
+| **Freelance Platforms**          | Platform fees, referral bonuses, milestone payments                   |
+
+---
+
+## How It's Different
+
+| Feature                       | Laravel Sales Commission                  | Other Packages   |
+| ----------------------------- | ----------------------------------------- | ---------------- |
+| **Full Lifecycle Management** | Calculation → Clawback → Payout           | Calculation only |
+| **Team Split Commissions**    | ✅ Built-in with roles                    | ❌ Not supported |
+| **Clawback System**           | ✅ Full, partial, grace periods           | ❌ Not supported |
+| **Payout Processing**         | ✅ Generate, approve, process             | ❌ Not supported |
+| **Multi-Tier Structures**     | ✅ Automatic tier progression             | ⚠️ Basic tiers   |
+| **Conditional Rules**         | ✅ Any condition (category, amount, etc.) | ⚠️ Limited       |
+| **Event System**              | ✅ 4 lifecycle events                     | ⚠️ Minimal       |
+| **Period Tracking**           | ✅ Weekly/Monthly/Quarterly               | ❌ Not supported |
+| **Production Ready**          | ✅ 31 tests, CI/CD, documented            | ⚠️ Varies        |
+
+---
 
 ## Requirements
 

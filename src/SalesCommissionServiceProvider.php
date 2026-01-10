@@ -86,8 +86,30 @@ class SalesCommissionServiceProvider extends ServiceProvider
         if (file_exists(__DIR__ . '/Pro/routes/api.php')) {
             if (app(LicenseManager::class)->isValid()) {
                 $this->loadRoutesFrom(__DIR__ . '/Pro/routes/api.php');
+            } else {
+                // Register fallback route for unlicensed access
+                $this->registerFallbackApiRoutes();
             }
         }
+    }
+
+    /**
+     * Register fallback API routes when license is invalid.
+     */
+    protected function registerFallbackApiRoutes(): void
+    {
+        $this->app['router']->prefix('api/commissions')
+            ->middleware(['api'])
+            ->group(function ($router) {
+                $router->any('{any?}', function () {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Commission API is not available. Please ensure you have a valid Pro license key configured.',
+                        'error_code' => 'LICENSE_REQUIRED',
+                        'help' => 'Add your license key to .env: SALES_COMMISSION_PRO_KEY=SCPRO-XXXX-XXXX-XXXX-XXXX',
+                    ], 403);
+                })->where('any', '.*');
+            });
     }
 }
 

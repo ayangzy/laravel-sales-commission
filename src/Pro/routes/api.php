@@ -11,6 +11,7 @@ use SalesCommission\Pro\Http\Controllers\Api\AgentController;
 use SalesCommission\Pro\Http\Controllers\Api\CommissionSplitController;
 use SalesCommission\Pro\Http\Controllers\Api\CalculateController;
 use SalesCommission\Pro\Http\Controllers\Api\StatsController;
+use SalesCommission\Pro\Http\Middleware\ApiExceptionHandler;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,7 +24,7 @@ use SalesCommission\Pro\Http\Controllers\Api\StatsController;
 */
 
 Route::prefix('api/commissions')
-    ->middleware(['api', 'auth:sanctum'])
+    ->middleware(['api', 'auth:sanctum', ApiExceptionHandler::class])
     ->group(function () {
         
         // Commission Plans

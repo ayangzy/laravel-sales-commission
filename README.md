@@ -354,10 +354,7 @@ Need advanced features? Check out [Laravel Sales Commission Pro](docs/PRO.md):
 
 ## Support the Project
 
-If this package helps you, please consider:
-
-- ⭐ **Star this repo** - It helps others discover the project
-- 💖 **[Sponsor on GitHub](https://github.com/sponsors/ayangzy)** - Support ongoing development
+If this package helps you, please consider giving it a ⭐ on GitHub - it helps others discover the project!
 
 ## Author
 

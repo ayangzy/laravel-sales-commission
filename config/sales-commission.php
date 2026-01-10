@@ -110,4 +110,25 @@ return [
         'payout_processed' => true,
         'tier_achieved' => true,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pro Features
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for Pro version features. Pro features require a valid
+    | license key to be activated.
+    |
+    */
+    'pro' => [
+        // Your Pro license key (format: SCPRO-XXXX-XXXX-XXXX-XXXX)
+        'license_key' => env('SALES_COMMISSION_PRO_KEY'),
+
+        // Enable/disable specific Pro features
+        'features' => [
+            'admin_panel' => true,
+            'api_endpoints' => true,
+            'exports' => true,
+        ],
+    ],
 ];

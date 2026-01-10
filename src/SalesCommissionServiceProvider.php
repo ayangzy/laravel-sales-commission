@@ -3,7 +3,9 @@
 namespace SalesCommission;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
 use SalesCommission\Services\CommissionCalculator;
+use SalesCommission\Pro\LicenseManager;
 
 class SalesCommissionServiceProvider extends ServiceProvider
 {
@@ -20,6 +22,12 @@ class SalesCommissionServiceProvider extends ServiceProvider
         $this->app->singleton('commission', function ($app) {
             return new CommissionCalculator();
         });
+
+        $this->app->singleton(LicenseManager::class, function ($app) {
+            return new LicenseManager();
+        });
+
+        $this->app->alias(LicenseManager::class, 'commission.license');
     }
 
     /**
@@ -35,6 +43,13 @@ class SalesCommissionServiceProvider extends ServiceProvider
             __DIR__ . '/../database/migrations' => database_path('migrations'),
         ], 'sales-commission-migrations');
 
+        // Load views for Pro features
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'sales-commission');
+
+        $this->publishes([
+            __DIR__ . '/../resources/views' => resource_path('views/vendor/sales-commission'),
+        ], 'sales-commission-views');
+
         if ($this->app->runningInConsole()) {
             $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
@@ -43,5 +58,52 @@ class SalesCommissionServiceProvider extends ServiceProvider
                 Commands\RecalculateTiers::class,
             ]);
         }
+
+        // Register Blade directives for Pro features
+        $this->registerBladeDirectives();
+
+        // Load Pro features if licensed
+        $this->bootProFeatures();
+    }
+
+    /**
+     * Register Blade directives.
+     */
+    protected function registerBladeDirectives(): void
+    {
+        Blade::if('pro', function () {
+            return app(LicenseManager::class)->isValid();
+        });
+    }
+
+    /**
+     * Boot Pro features if license is valid.
+     */
+    protected function bootProFeatures(): void
+    {
+        $license = app(LicenseManager::class);
+
+        if (!$license->isValid()) {
+            return;
+        }
+
+        // Load Pro routes
+        if (file_exists(__DIR__ . '/Pro/routes/api.php')) {
+            $this->loadRoutesFrom(__DIR__ . '/Pro/routes/api.php');
+        }
+
+        // Register Filament resources if Filament is installed
+        if (class_exists(\Filament\FilamentServiceProvider::class)) {
+            $this->bootFilamentResources();
+        }
+    }
+
+    /**
+     * Boot Filament admin panel resources.
+     */
+    protected function bootFilamentResources(): void
+    {
+        // Filament resources will be registered here
     }
 }
+

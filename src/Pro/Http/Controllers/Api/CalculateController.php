@@ -24,7 +24,7 @@ class CalculateController extends Controller
     public function calculate(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'amount' => 'required|numeric|min:0',
+            'amount' => 'required|numeric|min:0.01',
             'agent_id' => 'required|string',
             'agent_type' => 'required|string',
             'plan' => 'nullable|string',
@@ -32,6 +32,53 @@ class CalculateController extends Controller
             'commissionable_id' => 'nullable|string',
             'meta' => 'nullable|array',
         ]);
+
+        // Check if plan exists (if specified) or default plan exists
+        $plan = null;
+        if (!empty($validated['plan'])) {
+            $plan = CommissionPlan::where('slug', $validated['plan'])
+                ->orWhere('id', $validated['plan'])
+                ->first();
+            
+            if (!$plan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Commission plan '{$validated['plan']}' not found.",
+                    'error_code' => 'PLAN_NOT_FOUND',
+                ], 404);
+            }
+        } else {
+            $plan = CommissionPlan::where('is_default', true)->first();
+            
+            if (!$plan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No default commission plan configured. Please create a plan and set it as default, or specify a plan in the request.',
+                    'error_code' => 'NO_DEFAULT_PLAN',
+                ], 422);
+            }
+        }
+
+        // Get agent
+        $agentModel = $validated['agent_type'];
+        
+        if (!class_exists($agentModel)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Agent model '{$agentModel}' does not exist.",
+                'error_code' => 'INVALID_AGENT_TYPE',
+            ], 422);
+        }
+
+        $agent = app($agentModel)->find($validated['agent_id']);
+
+        if (!$agent) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Agent not found with ID: ' . $validated['agent_id'],
+                'error_code' => 'AGENT_NOT_FOUND',
+            ], 404);
+        }
 
         // Create a simple commissionable object
         $commissionable = new class($validated) {
@@ -73,30 +120,29 @@ class CalculateController extends Controller
             }
         };
 
-        // Get agent
-        $agentModel = config('sales-commission.models.agent', 'App\\Models\\User');
-        $agent = app($agentModel)->find($validated['agent_id']);
+        try {
+            $earning = $this->calculator->forPlan($plan)->calculate($commissionable, $agent);
 
-        if (!$agent) {
+            if (!$earning) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Commission could not be calculated. Please check your plan has rules configured.',
+                    'error_code' => 'CALCULATION_FAILED',
+                ], 422);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Commission calculated and saved.',
+                'data' => new CommissionEarningResource($earning),
+            ], 201);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Agent not found.',
-            ], 404);
+                'message' => 'Error calculating commission: ' . $e->getMessage(),
+                'error_code' => 'CALCULATION_ERROR',
+            ], 500);
         }
-
-        $calculator = $this->calculator;
-
-        if (!empty($validated['plan'])) {
-            $calculator = $calculator->forPlan($validated['plan']);
-        }
-
-        $earning = $calculator->calculate($commissionable, $agent);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Commission calculated and saved.',
-            'data' => new CommissionEarningResource($earning),
-        ], 201);
     }
 
     /**

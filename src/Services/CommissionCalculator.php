@@ -335,8 +335,14 @@ class CommissionCalculator
      */
     protected function getCommissionableAmount($commissionable): float
     {
+        // Check interface first
         if ($commissionable instanceof Commissionable) {
             return $commissionable->getCommissionableAmount();
+        }
+
+        // Check if object has the method (for anonymous classes from API)
+        if (method_exists($commissionable, 'getCommissionableAmount')) {
+            return (float) $commissionable->getCommissionableAmount();
         }
 
         // Try common amount fields

@@ -108,12 +108,38 @@ class PayoutController extends Controller
         ]);
 
         $period = $validated['period'] ?? now()->format('Y-m');
+        
+        // Check if payout already exists for this period
+        $existingPayout = Payout::where('period', $period)
+            ->whereNotIn('status', [Payout::STATUS_CANCELLED, Payout::STATUS_FAILED])
+            ->first();
+
+        if ($existingPayout) {
+            return response()->json([
+                'success' => true,
+                'message' => "A payout already exists for period {$period}.",
+                'data' => new PayoutResource($existingPayout),
+                'is_existing' => true,
+            ], 200);
+        }
+
         $payout = $this->payoutService->generateForPeriod($period);
 
         if (!$payout) {
+            // Get more info about why no earnings were found
+            $payableCount = \SalesCommission\Models\CommissionEarning::where('status', 'payable')
+                ->where('period', $period)
+                ->whereNull('payout_id')
+                ->count();
+            
+            $message = $payableCount === 0 
+                ? "No payable earnings found for period {$period}. Mark earnings as 'payable' first."
+                : "Found {$payableCount} payable earnings but they may be blocked by hold period.";
+
             return response()->json([
                 'success' => false,
-                'message' => 'No payable earnings found for the specified period.',
+                'message' => $message,
+                'payable_count' => $payableCount,
             ], 422);
         }
 
@@ -121,6 +147,7 @@ class PayoutController extends Controller
             'success' => true,
             'message' => 'Payout generated successfully.',
             'data' => new PayoutResource($payout),
+            'is_existing' => false,
         ], 201);
     }
 

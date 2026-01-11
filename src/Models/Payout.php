@@ -132,9 +132,20 @@ class Payout extends Model
     /**
      * Create a new payout for a period.
      * Returns null if no payable earnings are found.
+     * Returns existing payout if one already exists for the period.
      */
     public static function generate(string $period): ?self
     {
+        // Check if an active payout already exists for this period
+        $existingPayout = static::where('period', $period)
+            ->whereNotIn('status', [self::STATUS_CANCELLED, self::STATUS_FAILED])
+            ->first();
+
+        if ($existingPayout) {
+            // Return existing payout instead of creating duplicate
+            return $existingPayout;
+        }
+
         // Get config values
         $holdPeriodDays = (int) config('sales-commission.payout.hold_period_days', 0);
 

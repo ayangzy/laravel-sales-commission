@@ -30,7 +30,18 @@ class DocsController extends Controller
             abort(404, 'OpenAPI specification not found at: ' . $specPath);
         }
         
-        return response(file_get_contents($specPath), 200)
+        // Replace server URLs with dynamic current URL
+        $content = file_get_contents($specPath);
+        $baseUrl = url('/api/commissions');
+        
+        // Update servers section with current URL
+        $content = preg_replace(
+            '/servers:.*?tags:/s',
+            "servers:\n  - url: {$baseUrl}\n    description: Current server\n\ntags:",
+            $content
+        );
+        
+        return response($content, 200)
             ->header('Content-Type', 'application/x-yaml')
             ->header('Access-Control-Allow-Origin', '*');
     }

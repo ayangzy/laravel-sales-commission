@@ -103,15 +103,12 @@ class SalesCommissionExceptionHandler
     {
         $model = class_basename($e->getModel());
         $modelName = self::humanizeModelName($model);
-        $ids = $e->getIds();
 
         return response()->json([
             'success' => false,
             'error' => [
-                'code' => strtoupper(Str::snake($model)) . '_NOT_FOUND',
+                'code' => 404,
                 'message' => "{$modelName} not found.",
-                'resource_type' => $model,
-                'resource_id' => count($ids) === 1 ? $ids[0] : ($ids ?: null),
             ],
         ], 404);
     }
@@ -129,19 +126,16 @@ class SalesCommissionExceptionHandler
 
         // Try to extract model info from the message
         $message = $e->getMessage();
-        if (preg_match('/No query results for model \[([^\]]+)\]\s*(.*)/', $message, $matches)) {
+        if (preg_match('/No query results for model \[([^\]]+)\]/', $message, $matches)) {
             $fullModel = $matches[1];
             $model = class_basename($fullModel);
             $modelName = self::humanizeModelName($model);
-            $resourceId = trim($matches[2]) ?: null;
 
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => strtoupper(Str::snake($model)) . '_NOT_FOUND',
+                    'code' => 404,
                     'message' => "{$modelName} not found.",
-                    'resource_type' => $model,
-                    'resource_id' => $resourceId,
                 ],
             ], 404);
         }
@@ -149,7 +143,7 @@ class SalesCommissionExceptionHandler
         return response()->json([
             'success' => false,
             'error' => [
-                'code' => 'ROUTE_NOT_FOUND',
+                'code' => 404,
                 'message' => 'The requested endpoint was not found.',
             ],
         ], 404);
@@ -163,7 +157,7 @@ class SalesCommissionExceptionHandler
         return response()->json([
             'success' => false,
             'error' => [
-                'code' => 'VALIDATION_ERROR',
+                'code' => 422,
                 'message' => 'The given data was invalid.',
                 'fields' => $e->errors(),
             ],
@@ -178,7 +172,7 @@ class SalesCommissionExceptionHandler
         return response()->json([
             'success' => false,
             'error' => [
-                'code' => 'UNAUTHENTICATED',
+                'code' => 401,
                 'message' => 'Authentication required. Please provide a valid API token.',
             ],
         ], 401);
@@ -192,7 +186,7 @@ class SalesCommissionExceptionHandler
         return response()->json([
             'success' => false,
             'error' => [
-                'code' => 'FORBIDDEN',
+                'code' => 403,
                 'message' => $e->getMessage() ?: 'You do not have permission to perform this action.',
             ],
         ], 403);
@@ -204,24 +198,11 @@ class SalesCommissionExceptionHandler
     protected static function handleHttpException(HttpException $e): JsonResponse
     {
         $statusCode = $e->getStatusCode();
-        $codes = [
-            400 => 'BAD_REQUEST',
-            401 => 'UNAUTHENTICATED',
-            403 => 'FORBIDDEN',
-            404 => 'NOT_FOUND',
-            405 => 'METHOD_NOT_ALLOWED',
-            409 => 'CONFLICT',
-            422 => 'UNPROCESSABLE_ENTITY',
-            429 => 'TOO_MANY_REQUESTS',
-            500 => 'INTERNAL_ERROR',
-            502 => 'BAD_GATEWAY',
-            503 => 'SERVICE_UNAVAILABLE',
-        ];
 
         return response()->json([
             'success' => false,
             'error' => [
-                'code' => $codes[$statusCode] ?? 'HTTP_ERROR',
+                'code' => $statusCode,
                 'message' => $e->getMessage() ?: 'An error occurred.',
             ],
         ], $statusCode);
@@ -246,7 +227,7 @@ class SalesCommissionExceptionHandler
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'INTERNAL_ERROR',
+                    'code' => 500,
                     'message' => $e->getMessage(),
                     'exception' => get_class($e),
                     'file' => $e->getFile(),
@@ -258,7 +239,7 @@ class SalesCommissionExceptionHandler
         return response()->json([
             'success' => false,
             'error' => [
-                'code' => 'INTERNAL_ERROR',
+                'code' => 500,
                 'message' => 'An unexpected error occurred. Please try again later.',
             ],
         ], 500);

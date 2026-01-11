@@ -16,7 +16,7 @@
 ### How to Purchase
 
 1. Visit our website or Gumroad store
-2. Select your license tier (Pro, Enterprise, or Custom)
+2. Select the Pro license
 3. Complete payment
 4. Receive your license key via email immediately
 
@@ -30,11 +30,10 @@ SCPRO-A3F2-B8C1-D4E5-F6A7
 
 ### License Tiers
 
-| Tier           | Price     | Features                        |
-| -------------- | --------- | ------------------------------- |
-| **Pro**        | $99/year  | Admin Panel, API, 1 Project     |
-| **Enterprise** | $299/year | Everything + Unlimited Projects |
-| **Lifetime**   | $499      | Everything Forever              |
+| Tier         | Price         | Features                           |
+| ------------ | ------------- | ---------------------------------- |
+| **Pro**      | $99 one-time  | Admin Panel, API, Priority Support |
+| **Lifetime** | $199 one-time | Everything + Lifetime Updates      |
 
 ---
 

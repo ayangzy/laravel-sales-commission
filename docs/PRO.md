@@ -1,6 +1,6 @@
 # Laravel Sales Commission Pro
 
-> Everything in the free package, plus enterprise features for scaling your commission operations.
+> Everything in the free package, plus professional features for scaling your commission operations.
 
 ## Free vs Pro Comparison
 
@@ -44,20 +44,6 @@
 - Priority email support
 
 [Buy Pro License →](#)
-
----
-
-### 🏢 Enterprise License
-
-**$299** one-time payment
-
-- Unlimited projects
-- Lifetime updates
-- Priority support
-- 1 hour implementation call
-- White-label rights
-
-[Contact for Enterprise →](#)
 
 ---
 
@@ -117,7 +103,7 @@ RESTful API for integrating with external systems:
 ## FAQ
 
 **Q: Do I need a license for each project?**
-A: The Pro license is per-project. Enterprise license covers unlimited projects.
+A: Yes, the Pro license is per-project. Contact us for multi-project discounts.
 
 **Q: What happens after 1 year?**
 A: You keep using the version you have. Renew for $49/year to get updates.
@@ -134,7 +120,6 @@ A: Yes, you get full source code for Pro features.
 
 1. [Download Free Version](https://github.com/ayangzy/laravel-sales-commission)
 2. [Buy Pro License](#)
-3. [Contact for Enterprise](#)
 
 ---
 

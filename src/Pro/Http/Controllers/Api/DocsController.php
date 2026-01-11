@@ -23,14 +23,16 @@ class DocsController extends Controller
      */
     public function spec(): Response
     {
-        $specPath = __DIR__ . '/../../../../docs/openapi.yaml';
+        // Navigate from src/Pro/Http/Controllers/Api to docs/
+        $specPath = dirname(__DIR__, 5) . '/docs/openapi.yaml';
         
         if (!file_exists($specPath)) {
-            abort(404, 'OpenAPI specification not found.');
+            abort(404, 'OpenAPI specification not found at: ' . $specPath);
         }
         
         return response(file_get_contents($specPath), 200)
-            ->header('Content-Type', 'application/x-yaml');
+            ->header('Content-Type', 'application/x-yaml')
+            ->header('Access-Control-Allow-Origin', '*');
     }
 
     /**

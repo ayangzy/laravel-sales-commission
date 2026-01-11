@@ -64,4 +64,9 @@ class TopEarnersWidget extends BaseWidget
     {
         return false;
     }
+
+    public function getTableRecordKey($record): string
+    {
+        return $record->agent_type . ':' . $record->agent_id;
+    }
 }

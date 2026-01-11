@@ -145,8 +145,9 @@ class Payout extends Model
         $minThreshold = config('sales-commission.payout.min_threshold', 0);
         $holdPeriodDays = config('sales-commission.payout.hold_period_days', 0);
 
-        // Query for payable earnings that have passed the hold period
-        $earningsQuery = CommissionEarning::payable();
+        // Query for payable earnings for this period that have passed the hold period
+        $earningsQuery = CommissionEarning::payable()
+            ->where('period', $period);
         
         if ($holdPeriodDays > 0) {
             $earningsQuery->where('earned_at', '<=', now()->subDays($holdPeriodDays));

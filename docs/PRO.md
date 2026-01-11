@@ -17,7 +17,7 @@
 | **Pro Features**               |                    |              |
 | Admin Dashboard (Filament)     |         ❌         |      ✅      |
 | Advanced Reporting & Analytics |         ❌         |      ✅      |
-| Multi-Currency Support         |         ❌         |      ✅      |
+| Configurable Currency          |         ❌         |      ✅      |
 | Scheduled Commissions          |         ❌         |      ✅      |
 | Recurring Commission Tracking  |         ❌         |      ✅      |
 | Custom Rule Builder UI         |         ❌         |      ✅      |
@@ -96,13 +96,13 @@ A beautiful admin panel to manage commissions without code:
 - Payout forecasting
 - Revenue attribution
 
-### Multi-Currency Support
+### Configurable Currency
 
-Track commissions in any currency:
+Set your preferred currency system-wide:
 
-- Automatic exchange rate conversion
-- Per-plan currency settings
-- Multi-currency reporting
+- 40+ currency symbols supported (USD, EUR, GBP, NGN, etc.)
+- Clean symbol display (₦, $, €, £)
+- Single currency mode for consistency
 
 ### API Endpoints
 

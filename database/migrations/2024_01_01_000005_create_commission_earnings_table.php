@@ -38,6 +38,7 @@ return new class extends Migration
             $table->decimal('commission_amount', 15, 2);
             $table->decimal('rate', 8, 4)->nullable(); // Commission rate applied
             $table->string('rate_type')->nullable(); // percentage, fixed
+            $table->string('currency')->default('USD'); // Currency code (ISO 4217)
             
             // Status and lifecycle
             $table->string('status')->default('pending');

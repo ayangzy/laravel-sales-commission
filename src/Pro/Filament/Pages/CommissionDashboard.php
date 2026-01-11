@@ -2,6 +2,7 @@
 
 namespace SalesCommission\Pro\Filament\Pages;
 
+use Carbon\Carbon;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Pages\Dashboard;
@@ -19,7 +20,7 @@ class CommissionDashboard extends Dashboard
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
 
-    protected static ?string $title = 'Commission Dashboard';
+    protected static ?string $title = 'Sales Commission';
 
     protected static ?string $navigationLabel = 'Dashboard';
 
@@ -31,11 +32,27 @@ class CommissionDashboard extends Dashboard
     {
         return $form
             ->schema([
+                Select::make('time_range')
+                    ->label('Period-Based Tracking')
+                    ->options([
+                        'this_week' => 'This Week',
+                        'last_week' => 'Last Week',
+                        'this_month' => 'This Month (' . now()->format('M Y') . ')',
+                        'last_month' => 'Last Month (' . now()->subMonth()->format('M Y') . ')',
+                        'this_quarter' => 'This Quarter (Q' . ceil(now()->month / 3) . ' ' . now()->year . ')',
+                        'last_quarter' => 'Last Quarter',
+                        'this_year' => 'This Year (' . now()->year . ')',
+                        'last_year' => 'Last Year (' . now()->subYear()->year . ')',
+                    ])
+                    ->default('this_month')
+                    ->selectablePlaceholder(false)
+                    ->live(),
+
                 Select::make('period')
-                    ->label('Period')
+                    ->label('Specific Month')
                     ->options($this->getPeriodOptions())
-                    ->default(now()->format('Y-m'))
-                    ->selectablePlaceholder(false),
+                    ->placeholder('Or select month...')
+                    ->visible(fn ($get) => empty($get('time_range')) || $get('time_range') === 'custom'),
             ]);
     }
 
@@ -43,7 +60,7 @@ class CommissionDashboard extends Dashboard
     {
         $options = [];
         
-        for ($i = 0; $i < 12; $i++) {
+        for ($i = 0; $i < 24; $i++) {
             $date = now()->subMonths($i);
             $value = $date->format('Y-m');
             $label = $date->format('F Y');
@@ -59,9 +76,9 @@ class CommissionDashboard extends Dashboard
             CommissionStatsWidget::class,
             EarningsTrendWidget::class,
             TopEarnersWidget::class,
+            BonusAwardsWidget::class, // Right after TopEarners
             TierDistributionWidget::class,
             RecentActivityWidget::class,
-            BonusAwardsWidget::class,
         ];
     }
 
@@ -75,4 +92,3 @@ class CommissionDashboard extends Dashboard
         ];
     }
 }
-

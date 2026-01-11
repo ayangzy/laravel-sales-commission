@@ -85,6 +85,7 @@ class CommissionPlan extends Model
 
     /**
      * Find the applicable tier for a given amount.
+     * Returns the highest tier the agent qualifies for.
      */
     public function findTierForAmount(float $amount): ?CommissionTier
     {
@@ -94,6 +95,7 @@ class CommissionPlan extends Model
                 $query->whereNull('max_threshold')
                     ->orWhere('max_threshold', '>=', $amount);
             })
+            ->orderByDesc('min_threshold')
             ->first();
     }
 }

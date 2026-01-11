@@ -102,6 +102,10 @@ class SalesCommissionServiceProvider extends ServiceProvider
      */
     protected function registerFallbackApiRoutes(): void
     {
+        // Always register docs routes (viewable without license)
+        $this->registerDocsRoutes();
+        
+        // Register catch-all for other routes (requires license)
         $this->app['router']->prefix('api/commissions')
             ->middleware(['api'])
             ->group(function ($router) {
@@ -112,7 +116,20 @@ class SalesCommissionServiceProvider extends ServiceProvider
                         'error_code' => 'LICENSE_REQUIRED',
                         'help' => 'Add your license key to .env: SALES_COMMISSION_PRO_KEY=SCPRO-XXXX-XXXX-XXXX-XXXX',
                     ], 403);
-                })->where('any', '.*');
+                })->where('any', '^(?!docs).*');  // Exclude docs from this catch-all
+            });
+    }
+
+    /**
+     * Register API documentation routes (always accessible).
+     */
+    protected function registerDocsRoutes(): void
+    {
+        $this->app['router']->prefix('api/commissions')
+            ->middleware(['api'])
+            ->group(function ($router) {
+                $router->get('docs', [\SalesCommission\Pro\Http\Controllers\Api\DocsController::class, 'index']);
+                $router->get('docs/openapi.yaml', [\SalesCommission\Pro\Http\Controllers\Api\DocsController::class, 'spec']);
             });
     }
 }

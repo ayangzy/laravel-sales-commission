@@ -43,6 +43,11 @@ class AgentResource extends Resource
                     ->color('gray')
                     ->toggleable(isToggledHiddenByDefault: true),
 
+                Tables\Columns\TextColumn::make('plan_name')
+                    ->label('Plan')
+                    ->badge()
+                    ->color('primary'),
+
                 Tables\Columns\TextColumn::make('total_sales')
                     ->label('Total Sales')
                     ->money('USD')
@@ -63,8 +68,8 @@ class AgentResource extends Resource
                 Tables\Columns\TextColumn::make('current_tier')
                     ->label('Current Tier')
                     ->getStateUsing(function ($record) {
-                        $plan = CommissionPlan::getDefault();
-                        if (!$plan) return '—';
+                        $plan = CommissionPlan::find($record->plan_id);
+                        if (!$plan) return 'No Plan';
                         
                         $tier = $plan->findTierForAmount((float) $record->total_sales);
                         return $tier?->name ?? 'No Tier';
@@ -76,25 +81,25 @@ class AgentResource extends Resource
                         'Gold' => 'success',
                         'Platinum' => 'info',
                         'Diamond' => 'primary',
-                        'No Tier' => 'danger',
+                        'No Tier', 'No Plan' => 'danger',
                         default => 'gray',
                     }),
 
                 Tables\Columns\TextColumn::make('current_rate')
                     ->label('Rate')
                     ->getStateUsing(function ($record) {
-                        $plan = CommissionPlan::getDefault();
+                        $plan = CommissionPlan::find($record->plan_id);
                         if (!$plan) return '—';
                         
                         $tier = $plan->findTierForAmount((float) $record->total_sales);
-                        return $tier ? $tier->rate . '%' : '—';
+                        return $tier ? number_format($tier->rate, 1) . '%' : '—';
                     })
                     ->color('success'),
 
                 Tables\Columns\TextColumn::make('next_tier')
                     ->label('Next Tier')
                     ->getStateUsing(function ($record) {
-                        $plan = CommissionPlan::getDefault();
+                        $plan = CommissionPlan::find($record->plan_id);
                         if (!$plan) return '—';
                         
                         $nextTier = $plan->tiers()
@@ -102,7 +107,7 @@ class AgentResource extends Resource
                             ->orderBy('min_threshold')
                             ->first();
                         
-                        if (!$nextTier) return 'Max Tier';
+                        if (!$nextTier) return 'Max Tier ✓';
                         
                         $remaining = $nextTier->min_threshold - (float) $record->total_sales;
                         return $nextTier->name . ' ($' . number_format($remaining, 0) . ' to go)';
@@ -117,26 +122,12 @@ class AgentResource extends Resource
             ])
             ->defaultSort('total_earned', 'desc')
             ->filters([
-                Tables\Filters\SelectFilter::make('tier')
-                    ->label('Current Tier')
-                    ->options(function () {
-                        $plan = CommissionPlan::getDefault();
-                        if (!$plan) return [];
-                        
-                        return $plan->tiers()->pluck('name', 'name')->toArray();
-                    })
+                Tables\Filters\SelectFilter::make('plan_id')
+                    ->label('Plan')
+                    ->options(fn () => CommissionPlan::pluck('name', 'id')->toArray())
                     ->query(function (Builder $query, array $data) {
-                        if (empty($data['value'])) return;
-                        
-                        $plan = CommissionPlan::getDefault();
-                        if (!$plan) return;
-                        
-                        $tier = $plan->tiers()->where('name', $data['value'])->first();
-                        if (!$tier) return;
-                        
-                        $query->havingRaw('total_sales >= ?', [$tier->min_threshold]);
-                        if ($tier->max_threshold) {
-                            $query->havingRaw('total_sales <= ?', [$tier->max_threshold]);
+                        if (!empty($data['value'])) {
+                            $query->having('plan_id', $data['value']);
                         }
                     }),
             ])
@@ -160,12 +151,14 @@ class AgentResource extends Resource
             ->selectRaw('
                 agent_id,
                 agent_type,
+                plan_id,
+                (SELECT name FROM commission_plans WHERE id = commission_earnings.plan_id LIMIT 1) as plan_name,
                 SUM(base_amount) as total_sales,
                 SUM(CASE WHEN status != "clawed_back" THEN commission_amount ELSE 0 END) as total_earned,
                 COUNT(*) as transactions_count,
                 MAX(earned_at) as last_earning_at
             ')
-            ->groupBy('agent_id', 'agent_type');
+            ->groupBy('agent_id', 'agent_type', 'plan_id');
     }
 
     public static function getPages(): array
@@ -175,3 +168,4 @@ class AgentResource extends Resource
         ];
     }
 }
+

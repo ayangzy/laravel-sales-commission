@@ -16,23 +16,22 @@ class PayoutServiceTest extends TestCase
         $this->service = new PayoutService();
     }
 
-    public function test_generate_for_period_creates_payout(): void
+    public function test_generate_for_period_returns_null_when_no_earnings(): void
     {
         $period = '2026-01';
 
         $payout = $this->service->generateForPeriod($period);
 
-        $this->assertInstanceOf(Payout::class, $payout);
-        $this->assertEquals($period, $payout->period);
-        $this->assertEquals(Payout::STATUS_PENDING_APPROVAL, $payout->status);
+        // Should return null when no payable earnings exist
+        $this->assertNull($payout);
     }
 
-    public function test_generate_for_current_period_uses_correct_format(): void
+    public function test_generate_for_current_period_returns_null_when_no_earnings(): void
     {
         $payout = $this->service->generateForCurrentPeriod();
 
-        $this->assertInstanceOf(Payout::class, $payout);
-        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}$/', $payout->period);
+        // Should return null when no payable earnings exist
+        $this->assertNull($payout);
     }
 
     public function test_get_current_period_returns_monthly_format_by_default(): void

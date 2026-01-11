@@ -11,16 +11,18 @@ class PayoutService
 {
     /**
      * Generate a payout for a specific period.
+     * Returns null if no payable earnings are found.
      */
-    public function generateForPeriod(string $period): Payout
+    public function generateForPeriod(string $period): ?Payout
     {
         return Payout::generate($period);
     }
 
     /**
      * Generate a payout for the current period based on schedule.
+     * Returns null if no payable earnings are found.
      */
-    public function generateForCurrentPeriod(): Payout
+    public function generateForCurrentPeriod(): ?Payout
     {
         $period = $this->getCurrentPeriod();
         return $this->generateForPeriod($period);

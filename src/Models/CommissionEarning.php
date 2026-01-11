@@ -157,11 +157,8 @@ class CommissionEarning extends Model
      */
     public function scopePayable($query)
     {
-        $holdPeriod = config('sales-commission.payout.hold_period_days', 14);
-
-        return $query->where('status', self::STATUS_APPROVED)
-            ->whereNull('payout_id')
-            ->where('earned_at', '<=', now()->subDays($holdPeriod));
+        return $query->where('status', self::STATUS_PAYABLE)
+            ->whereNull('payout_id');
     }
 
     /**

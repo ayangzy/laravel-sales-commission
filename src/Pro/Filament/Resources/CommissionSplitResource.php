@@ -9,6 +9,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use SalesCommission\Models\CommissionSplit;
 use SalesCommission\Pro\Filament\Resources\CommissionSplitResource\Pages;
+use SalesCommission\Support\CurrencyHelper;
 
 class CommissionSplitResource extends Resource
 {
@@ -81,13 +82,13 @@ class CommissionSplitResource extends Resource
 
                 Tables\Columns\TextColumn::make('split_amount')
                     ->label('Amount')
-                    ->money(config('sales-commission.currency', 'USD'))
+                    ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->earning?->currency))
                     ->sortable()
                     ->color('success'),
 
                 Tables\Columns\TextColumn::make('earning.base_amount')
                     ->label('Sale Total')
-                    ->money(config('sales-commission.currency', 'USD'))
+                    ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->earning?->currency))
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('created_at')

@@ -9,6 +9,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 use SalesCommission\Models\CommissionEarning;
 use SalesCommission\Models\CommissionClawback;
 use SalesCommission\Models\Payout;
+use SalesCommission\Support\CurrencyHelper;
 
 class CommissionStatsWidget extends BaseWidget
 {
@@ -18,14 +19,16 @@ class CommissionStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        [$startDate, $endDate, $label] = $this->getDateRange();
+        [$startDate, $endDate] = $this->getDateRange();
+        $symbol = CurrencyHelper::getConfiguredSymbol();
+        $label = $this->getDateLabel($startDate, $endDate);
 
         // Period earnings
         $periodEarnings = CommissionEarning::whereBetween('earned_at', [$startDate, $endDate])
             ->sum('commission_amount');
 
         // Previous period for comparison
-        $periodLength = $startDate->diffInDays($endDate);
+        $periodLength = max(1, $startDate->diffInDays($endDate));
         $previousStart = $startDate->copy()->subDays($periodLength + 1);
         $previousEnd = $startDate->copy()->subDay();
         $previousEarnings = CommissionEarning::whereBetween('earned_at', [$previousStart, $previousEnd])
@@ -62,28 +65,28 @@ class CommissionStatsWidget extends BaseWidget
             : 0;
 
         return [
-            Stat::make("Earnings ({$label})", '$' . number_format($periodEarnings, 2))
-                ->description($trend >= 0 ? "+{$trend}% vs previous" : "{$trend}% vs previous")
+            Stat::make("Earnings", $symbol . number_format($periodEarnings, 2))
+                ->description($label . ' | ' . ($trend >= 0 ? "+{$trend}%" : "{$trend}%") . ' vs previous')
                 ->descriptionIcon($trend >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color($trend >= 0 ? 'success' : 'danger')
                 ->chart($this->getEarningsChartData($startDate, $endDate)),
 
-            Stat::make('Pending Payouts', '$' . number_format($pendingPayouts, 2))
+            Stat::make('Pending Payouts', $symbol . number_format($pendingPayouts, 2))
                 ->description("{$pendingCount} awaiting action")
                 ->descriptionIcon('heroicon-m-clock')
                 ->color('warning'),
 
-            Stat::make('Paid', '$' . number_format($paidAmount, 2))
-                ->description("Processed in {$label}")
+            Stat::make('Paid', $symbol . number_format($paidAmount, 2))
+                ->description("Processed in period")
                 ->descriptionIcon('heroicon-m-check-circle')
                 ->color('success'),
 
-            Stat::make('Clawbacks', '$' . number_format($clawbacksAmount, 2))
-                ->description("Reversed in {$label}")
+            Stat::make('Clawbacks', $symbol . number_format($clawbacksAmount, 2))
+                ->description("Reversed in period")
                 ->descriptionIcon('heroicon-m-arrow-uturn-left')
                 ->color($clawbacksAmount > 0 ? 'danger' : 'gray'),
 
-            Stat::make('YTD Earnings', '$' . number_format($ytdEarnings, 2))
+            Stat::make('YTD Earnings', $symbol . number_format($ytdEarnings, 2))
                 ->description('Total ' . now()->year)
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color('primary'),
@@ -91,34 +94,33 @@ class CommissionStatsWidget extends BaseWidget
     }
 
     /**
-     * Get date range based on selected filter.
+     * Get date range from filters.
      */
     protected function getDateRange(): array
     {
-        $timeRange = $this->filters['time_range'] ?? 'this_month';
-        $period = $this->filters['period'] ?? null;
+        $startDate = $this->filters['start_date'] ?? null;
+        $endDate = $this->filters['end_date'] ?? null;
 
-        // If specific period is selected, use it
-        if ($period) {
-            $date = Carbon::createFromFormat('Y-m', $period);
-            return [
-                $date->copy()->startOfMonth(),
-                $date->copy()->endOfMonth(),
-                $date->format('M Y'),
-            ];
+        $start = $startDate ? Carbon::parse($startDate)->startOfDay() : now()->startOfMonth();
+        $end = $endDate ? Carbon::parse($endDate)->endOfDay() : now()->endOfDay();
+
+        return [$start, $end];
+    }
+
+    /**
+     * Get readable date label.
+     */
+    protected function getDateLabel(Carbon $start, Carbon $end): string
+    {
+        if ($start->isSameDay($end)) {
+            return $start->format('M d, Y');
         }
-
-        return match ($timeRange) {
-            'this_week' => [now()->startOfWeek(), now()->endOfWeek(), 'This Week'],
-            'last_week' => [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek(), 'Last Week'],
-            'this_month' => [now()->startOfMonth(), now()->endOfMonth(), now()->format('M Y')],
-            'last_month' => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth(), now()->subMonth()->format('M Y')],
-            'this_quarter' => [now()->firstOfQuarter(), now()->lastOfQuarter(), 'Q' . ceil(now()->month / 3) . ' ' . now()->year],
-            'last_quarter' => [now()->subQuarter()->firstOfQuarter(), now()->subQuarter()->lastOfQuarter(), 'Last Quarter'],
-            'this_year' => [now()->startOfYear(), now()->endOfYear(), now()->year],
-            'last_year' => [now()->subYear()->startOfYear(), now()->subYear()->endOfYear(), now()->subYear()->year],
-            default => [now()->startOfMonth(), now()->endOfMonth(), now()->format('M Y')],
-        };
+        
+        if ($start->isSameMonth($end)) {
+            return $start->format('M d') . ' - ' . $end->format('d, Y');
+        }
+        
+        return $start->format('M d') . ' - ' . $end->format('M d, Y');
     }
 
     /**

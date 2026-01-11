@@ -7,6 +7,7 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use SalesCommission\Support\CurrencyHelper;
 
 class TiersRelationManager extends RelationManager
 {
@@ -40,7 +41,7 @@ class TiersRelationManager extends RelationManager
                     ->label('Tier Bonus')
                     ->numeric()
                     ->nullable()
-                    ->prefix('$')
+                    ->prefix(CurrencyHelper::getConfiguredSymbol())
                     ->helperText('One-time bonus for reaching this tier'),
             ]);
     }
@@ -52,16 +53,16 @@ class TiersRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('min_threshold')
                     ->label('Min')
-                    ->money(config('sales-commission.currency', 'USD')),
+                    ->formatStateUsing(fn ($state) => CurrencyHelper::format((float) $state)),
                 Tables\Columns\TextColumn::make('max_threshold')
                     ->label('Max')
-                    ->money(config('sales-commission.currency', 'USD'))
+                    ->formatStateUsing(fn ($state) => $state ? CurrencyHelper::format((float) $state) : null)
                     ->placeholder('∞'),
                 Tables\Columns\TextColumn::make('rate')
                     ->suffix('%'),
                 Tables\Columns\TextColumn::make('bonus_amount')
                     ->label('Bonus')
-                    ->money(config('sales-commission.currency', 'USD'))
+                    ->formatStateUsing(fn ($state) => $state ? CurrencyHelper::format((float) $state) : null)
                     ->placeholder('-'),
             ])
             ->headerActions([

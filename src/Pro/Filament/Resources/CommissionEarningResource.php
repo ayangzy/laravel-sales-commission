@@ -9,6 +9,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use SalesCommission\Models\CommissionEarning;
 use SalesCommission\Pro\Filament\Resources\CommissionEarningResource\Pages;
+use SalesCommission\Support\CurrencyHelper;
 
 class CommissionEarningResource extends Resource
 {
@@ -57,11 +58,11 @@ class CommissionEarningResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('base_amount')
                     ->label('Sale Amount')
-                    ->money(fn ($record) => $record->currency ?? config('sales-commission.currency', 'USD'))
+                    ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->currency))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('commission_amount')
                     ->label('Commission')
-                    ->money(fn ($record) => $record->currency ?? config('sales-commission.currency', 'USD'))
+                    ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->currency))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('rate')
                     ->suffix('%')

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use SalesCommission\Models\CommissionEarning;
 use SalesCommission\Models\CommissionPlan;
 use SalesCommission\Pro\Filament\Resources\AgentResource\Pages;
+use SalesCommission\Support\CurrencyHelper;
 
 class AgentResource extends Resource
 {
@@ -50,13 +51,13 @@ class AgentResource extends Resource
 
                 Tables\Columns\TextColumn::make('total_sales')
                     ->label('Total Sales')
-                    ->money(config('sales-commission.currency', 'USD'))
+                    ->formatStateUsing(fn ($state) => CurrencyHelper::format((float) $state))
                     ->sortable()
                     ->color('primary'),
 
                 Tables\Columns\TextColumn::make('total_earned')
                     ->label('Total Earned')
-                    ->money(config('sales-commission.currency', 'USD'))
+                    ->formatStateUsing(fn ($state) => CurrencyHelper::format((float) $state))
                     ->sortable()
                     ->color('success'),
 

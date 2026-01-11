@@ -10,6 +10,7 @@ use Filament\Tables\Table;
 use Filament\Notifications\Notification;
 use SalesCommission\Models\Payout;
 use SalesCommission\Pro\Filament\Resources\PayoutResource\Pages;
+use SalesCommission\Support\CurrencyHelper;
 
 class PayoutResource extends Resource
 {
@@ -51,7 +52,7 @@ class PayoutResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('total_amount')
                     ->label('Amount')
-                    ->money(fn ($record) => $record->currency ?? config('sales-commission.currency', 'USD'))
+                    ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->currency))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('total_earnings_count')
                     ->label('Earnings'),

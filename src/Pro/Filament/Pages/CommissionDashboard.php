@@ -3,7 +3,8 @@
 namespace SalesCommission\Pro\Filament\Pages;
 
 use Carbon\Carbon;
-use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
 use Filament\Pages\Dashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
@@ -32,42 +33,24 @@ class CommissionDashboard extends Dashboard
     {
         return $form
             ->schema([
-                Select::make('time_range')
-                    ->label('Period-Based Tracking')
-                    ->options([
-                        'this_week' => 'This Week',
-                        'last_week' => 'Last Week',
-                        'this_month' => 'This Month (' . now()->format('M Y') . ')',
-                        'last_month' => 'Last Month (' . now()->subMonth()->format('M Y') . ')',
-                        'this_quarter' => 'This Quarter (Q' . ceil(now()->month / 3) . ' ' . now()->year . ')',
-                        'last_quarter' => 'Last Quarter',
-                        'this_year' => 'This Year (' . now()->year . ')',
-                        'last_year' => 'Last Year (' . now()->subYear()->year . ')',
+                Section::make()
+                    ->schema([
+                        DatePicker::make('start_date')
+                            ->label('From')
+                            ->default(now()->startOfMonth())
+                            ->maxDate(now())
+                            ->native(false)
+                            ->displayFormat('M d, Y'),
+                        DatePicker::make('end_date')
+                            ->label('To')
+                            ->default(now())
+                            ->maxDate(now())
+                            ->native(false)
+                            ->displayFormat('M d, Y'),
                     ])
-                    ->default('this_month')
-                    ->selectablePlaceholder(false)
-                    ->live(),
-
-                Select::make('period')
-                    ->label('Specific Month')
-                    ->options($this->getPeriodOptions())
-                    ->placeholder('Or select month...')
-                    ->visible(fn ($get) => empty($get('time_range')) || $get('time_range') === 'custom'),
+                    ->columns(2)
+                    ->compact(),
             ]);
-    }
-
-    protected function getPeriodOptions(): array
-    {
-        $options = [];
-        
-        for ($i = 0; $i < 24; $i++) {
-            $date = now()->subMonths($i);
-            $value = $date->format('Y-m');
-            $label = $date->format('F Y');
-            $options[$value] = $label;
-        }
-        
-        return $options;
     }
 
     public function getWidgets(): array
@@ -76,7 +59,7 @@ class CommissionDashboard extends Dashboard
             CommissionStatsWidget::class,
             EarningsTrendWidget::class,
             TopEarnersWidget::class,
-            BonusAwardsWidget::class, // Right after TopEarners
+            BonusAwardsWidget::class,
             TierDistributionWidget::class,
             RecentActivityWidget::class,
         ];

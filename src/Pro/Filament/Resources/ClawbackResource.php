@@ -9,6 +9,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use SalesCommission\Models\CommissionClawback;
 use SalesCommission\Pro\Filament\Resources\ClawbackResource\Pages;
+use SalesCommission\Support\CurrencyHelper;
 
 class ClawbackResource extends Resource
 {
@@ -30,7 +31,7 @@ class ClawbackResource extends Resource
                     ->label('Earning')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('amount')
-                    ->money(config('sales-commission.currency', 'USD'))
+                    ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->earning?->currency))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('reason')
                     ->badge()

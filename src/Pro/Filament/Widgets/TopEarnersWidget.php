@@ -7,6 +7,7 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Builder;
 use SalesCommission\Models\CommissionEarning;
+use SalesCommission\Support\CurrencyHelper;
 
 class TopEarnersWidget extends BaseWidget
 {
@@ -43,7 +44,7 @@ class TopEarnersWidget extends BaseWidget
 
             Tables\Columns\TextColumn::make('total_earned')
                 ->label('Earned')
-                ->money(config('sales-commission.currency', 'USD'))
+                ->formatStateUsing(fn ($state) => CurrencyHelper::format((float) $state))
                 ->sortable()
                 ->color('success')
                 ->weight('bold'),

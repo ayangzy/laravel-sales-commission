@@ -39,7 +39,7 @@
 - 1 year of updates
 - Priority email support
 
-[Buy Pro License →](#)
+[Buy Pro License →](https://laravel-commission.lemonsqueezy.com/checkout)
 
 ---
 
@@ -93,7 +93,7 @@ A: Yes, you get full source code for Pro features.
 ## Get Started
 
 1. [Download Free Version](https://github.com/ayangzy/laravel-sales-commission)
-2. [Buy Pro License](#)
+2. [Buy Pro License](https://laravel-commission.lemonsqueezy.com/checkout)
 
 ---
 

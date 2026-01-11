@@ -39,6 +39,7 @@ class SalesCommissionPlugin implements Plugin
                 Widgets\TopEarnersWidget::class,
                 Widgets\TierDistributionWidget::class,
                 Widgets\RecentActivityWidget::class,
+                Widgets\BonusAwardsWidget::class,
             ]);
     }
 

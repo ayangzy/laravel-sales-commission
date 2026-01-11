@@ -2,6 +2,8 @@
 
 namespace SalesCommission\Pro\Filament\Widgets;
 
+use Carbon\Carbon;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use SalesCommission\Models\CommissionEarning;
@@ -10,74 +12,80 @@ use SalesCommission\Models\Payout;
 
 class CommissionStatsWidget extends BaseWidget
 {
+    use InteractsWithPageFilters;
+
     protected static ?int $sort = 1;
 
     protected function getStats(): array
     {
-        $currentPeriod = now()->format('Y-m');
-        $lastPeriod = now()->subMonth()->format('Y-m');
+        $currentPeriod = $this->filters['period'] ?? now()->format('Y-m');
+        $previousPeriod = Carbon::createFromFormat('Y-m', $currentPeriod)->subMonth()->format('Y-m');
+        $periodDate = Carbon::createFromFormat('Y-m', $currentPeriod);
 
-        // Current month earnings
-        $currentEarnings = CommissionEarning::where('period', $currentPeriod)
+        // Period earnings
+        $periodEarnings = CommissionEarning::where('period', $currentPeriod)
             ->sum('commission_amount');
-        $lastEarnings = CommissionEarning::where('period', $lastPeriod)
+        $previousEarnings = CommissionEarning::where('period', $previousPeriod)
             ->sum('commission_amount');
 
-        // Pending payouts
-        $pendingPayouts = Payout::whereIn('status', [
-            Payout::STATUS_PENDING_APPROVAL,
-            Payout::STATUS_APPROVED,
-        ])->sum('total_amount');
+        // Pending payouts for this period
+        $pendingPayouts = Payout::where('period', $currentPeriod)
+            ->whereIn('status', [
+                Payout::STATUS_PENDING_APPROVAL,
+                Payout::STATUS_APPROVED,
+            ])->sum('total_amount');
 
-        $pendingCount = Payout::whereIn('status', [
-            Payout::STATUS_PENDING_APPROVAL,
-            Payout::STATUS_APPROVED,
-        ])->count();
+        $pendingCount = Payout::where('period', $currentPeriod)
+            ->whereIn('status', [
+                Payout::STATUS_PENDING_APPROVAL,
+                Payout::STATUS_APPROVED,
+            ])->count();
 
-        // Paid this month
-        $paidThisMonth = Payout::where('status', Payout::STATUS_PAID)
-            ->whereMonth('processed_at', now()->month)
-            ->whereYear('processed_at', now()->year)
+        // Paid for this period
+        $paidThisPeriod = Payout::where('period', $currentPeriod)
+            ->where('status', Payout::STATUS_PAID)
             ->sum('total_amount');
 
-        // Clawbacks this month
-        $clawbacksThisMonth = CommissionClawback::whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
+        // Clawbacks for this period
+        $clawbacksThisPeriod = CommissionClawback::whereMonth('created_at', $periodDate->month)
+            ->whereYear('created_at', $periodDate->year)
             ->sum('amount');
 
         // YTD earnings
-        $ytdEarnings = CommissionEarning::whereYear('earned_at', now()->year)
+        $ytdEarnings = CommissionEarning::whereYear('earned_at', $periodDate->year)
             ->sum('commission_amount');
 
         // Calculate trend
-        $trend = $lastEarnings > 0 
-            ? round((($currentEarnings - $lastEarnings) / $lastEarnings) * 100, 1) 
+        $trend = $previousEarnings > 0 
+            ? round((($periodEarnings - $previousEarnings) / $previousEarnings) * 100, 1) 
             : 0;
 
+        $periodLabel = $periodDate->format('M Y');
+
         return [
-            Stat::make('Earnings This Month', '$' . number_format($currentEarnings, 2))
-                ->description($trend >= 0 ? "+{$trend}% from last month" : "{$trend}% from last month")
+            Stat::make("Earnings ({$periodLabel})", '$' . number_format($periodEarnings, 2))
+                ->description($trend >= 0 ? "+{$trend}% vs prev month" : "{$trend}% vs prev month")
                 ->descriptionIcon($trend >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color($trend >= 0 ? 'success' : 'danger')
-                ->chart($this->getEarningsChartData()),
+                ->chart($this->getEarningsChartData($currentPeriod)),
 
             Stat::make('Pending Payouts', '$' . number_format($pendingPayouts, 2))
-                ->description("{$pendingCount} payouts awaiting action")
+                ->description("{$pendingCount} awaiting action")
                 ->descriptionIcon('heroicon-m-clock')
                 ->color('warning'),
 
-            Stat::make('Paid This Month', '$' . number_format($paidThisMonth, 2))
-                ->description('Successfully processed')
+            Stat::make('Paid', '$' . number_format($paidThisPeriod, 2))
+                ->description("Processed for {$periodLabel}")
                 ->descriptionIcon('heroicon-m-check-circle')
                 ->color('success'),
 
-            Stat::make('Clawbacks', '$' . number_format($clawbacksThisMonth, 2))
-                ->description('Reversed this month')
+            Stat::make('Clawbacks', '$' . number_format($clawbacksThisPeriod, 2))
+                ->description("Reversed in {$periodLabel}")
                 ->descriptionIcon('heroicon-m-arrow-uturn-left')
-                ->color($clawbacksThisMonth > 0 ? 'danger' : 'gray'),
+                ->color($clawbacksThisPeriod > 0 ? 'danger' : 'gray'),
 
             Stat::make('YTD Earnings', '$' . number_format($ytdEarnings, 2))
-                ->description('Total ' . now()->year)
+                ->description('Total ' . $periodDate->year)
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color('primary'),
         ];
@@ -86,12 +94,13 @@ class CommissionStatsWidget extends BaseWidget
     /**
      * Get mini chart data for earnings trend.
      */
-    protected function getEarningsChartData(): array
+    protected function getEarningsChartData(string $currentPeriod): array
     {
         $data = [];
+        $startPeriod = Carbon::createFromFormat('Y-m', $currentPeriod)->subMonths(5);
         
-        for ($i = 5; $i >= 0; $i--) {
-            $period = now()->subMonths($i)->format('Y-m');
+        for ($i = 0; $i < 6; $i++) {
+            $period = $startPeriod->copy()->addMonths($i)->format('Y-m');
             $data[] = (float) CommissionEarning::where('period', $period)
                 ->sum('commission_amount');
         }
@@ -99,3 +108,4 @@ class CommissionStatsWidget extends BaseWidget
         return $data;
     }
 }
+

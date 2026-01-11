@@ -105,11 +105,9 @@ class SalesCommissionExceptionHandler
         $modelName = self::humanizeModelName($model);
 
         return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 404,
-                'message' => "{$modelName} not found.",
-            ],
+            'statusCode' => 404,
+            'statusText' => 'not_found',
+            'message' => "{$modelName} not found.",
         ], 404);
     }
 
@@ -132,20 +130,16 @@ class SalesCommissionExceptionHandler
             $modelName = self::humanizeModelName($model);
 
             return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 404,
-                    'message' => "{$modelName} not found.",
-                ],
+                'statusCode' => 404,
+                'statusText' => 'not_found',
+                'message' => "{$modelName} not found.",
             ], 404);
         }
 
         return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 404,
-                'message' => 'The requested endpoint was not found.',
-            ],
+            'statusCode' => 404,
+            'statusText' => 'not_found',
+            'message' => 'The requested endpoint was not found.',
         ], 404);
     }
 
@@ -155,12 +149,10 @@ class SalesCommissionExceptionHandler
     protected static function handleValidation(ValidationException $e): JsonResponse
     {
         return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 422,
-                'message' => 'The given data was invalid.',
-                'fields' => $e->errors(),
-            ],
+            'statusCode' => 422,
+            'statusText' => 'validation_error',
+            'message' => 'The given data was invalid.',
+            'errors' => $e->errors(),
         ], 422);
     }
 
@@ -170,11 +162,9 @@ class SalesCommissionExceptionHandler
     protected static function handleAuthentication(AuthenticationException $e): JsonResponse
     {
         return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 401,
-                'message' => 'Authentication required. Please provide a valid API token.',
-            ],
+            'statusCode' => 401,
+            'statusText' => 'unauthorized',
+            'message' => 'Authentication required. Please provide a valid API token.',
         ], 401);
     }
 
@@ -184,11 +174,9 @@ class SalesCommissionExceptionHandler
     protected static function handleAuthorization(AuthorizationException $e): JsonResponse
     {
         return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 403,
-                'message' => $e->getMessage() ?: 'You do not have permission to perform this action.',
-            ],
+            'statusCode' => 403,
+            'statusText' => 'forbidden',
+            'message' => $e->getMessage() ?: 'You do not have permission to perform this action.',
         ], 403);
     }
 
@@ -198,13 +186,12 @@ class SalesCommissionExceptionHandler
     protected static function handleHttpException(HttpException $e): JsonResponse
     {
         $statusCode = $e->getStatusCode();
+        $statusText = self::getStatusText($statusCode);
 
         return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => $statusCode,
-                'message' => $e->getMessage() ?: 'An error occurred.',
-            ],
+            'statusCode' => $statusCode,
+            'statusText' => $statusText,
+            'message' => $e->getMessage() ?: 'An error occurred.',
         ], $statusCode);
     }
 
@@ -225,10 +212,10 @@ class SalesCommissionExceptionHandler
         // In production, hide details; in debug mode, show them
         if (config('app.debug')) {
             return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 500,
-                    'message' => $e->getMessage(),
+                'statusCode' => 500,
+                'statusText' => 'error',
+                'message' => $e->getMessage(),
+                'debug' => [
                     'exception' => get_class($e),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
@@ -237,12 +224,32 @@ class SalesCommissionExceptionHandler
         }
 
         return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => 500,
-                'message' => 'An unexpected error occurred. Please try again later.',
-            ],
+            'statusCode' => 500,
+            'statusText' => 'error',
+            'message' => 'An unexpected error occurred. Please try again later.',
         ], 500);
+    }
+
+    /**
+     * Get status text for HTTP status code.
+     */
+    protected static function getStatusText(int $statusCode): string
+    {
+        $texts = [
+            400 => 'bad_request',
+            401 => 'unauthorized',
+            403 => 'forbidden',
+            404 => 'not_found',
+            405 => 'method_not_allowed',
+            409 => 'conflict',
+            422 => 'validation_error',
+            429 => 'too_many_requests',
+            500 => 'error',
+            502 => 'bad_gateway',
+            503 => 'service_unavailable',
+        ];
+
+        return $texts[$statusCode] ?? 'error';
     }
 
     /**

@@ -86,3 +86,11 @@ Route::prefix('api/commissions')
         Route::get('stats/by-plan', [StatsController::class, 'byPlan']);
         Route::get('stats/trends', [StatsController::class, 'trends']);
     });
+
+// API Documentation (no auth required)
+Route::prefix('api/commissions')
+    ->middleware(['api'])
+    ->group(function () {
+        Route::get('docs', [\SalesCommission\Pro\Http\Controllers\Api\DocsController::class, 'index']);
+        Route::get('docs/openapi.yaml', [\SalesCommission\Pro\Http\Controllers\Api\DocsController::class, 'spec']);
+    });

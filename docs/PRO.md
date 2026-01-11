@@ -79,10 +79,6 @@ Set your preferred currency system-wide:
 
 RESTful API for integrating with external systems:
 
-- Calculate commissions via API
-- Query earnings and payouts
-- Webhook notifications
-
 ---
 
 ## FAQ

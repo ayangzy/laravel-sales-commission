@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravel Sales Commission Pro - API Documentation</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+    <style>
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+        
+        *,
+        *:before,
+        *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            background: #fafafa;
+        }
+        
+        .swagger-ui .topbar {
+            display: none;
+        }
+        
+        .custom-header {
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .custom-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .custom-header .badge {
+            background: #6366f1;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        .custom-header a {
+            color: #a5b4fc;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .custom-header a:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-header">
+        <div style="display: flex; align-items: center;">
+            <h1>📊 Laravel Sales Commission</h1>
+            <span class="badge">Pro API</span>
+        </div>
+        <div>
+            <a href="https://github.com/ayangzy/laravel-sales-commission" target="_blank">GitHub</a>
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            <a href="PRO-DOCUMENTATION.md">Full Docs</a>
+        </div>
+    </div>
+    
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" charset="UTF-8"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js" charset="UTF-8"></script>
+    <script>
+        window.onload = function() {
+            // Load the OpenAPI spec from the same directory
+            fetch('openapi.yaml')
+                .then(response => response.text())
+                .then(yamlContent => {
+                    // Use js-yaml to parse YAML (loaded via CDN)
+                    const script = document.createElement('script');
+                    script.src = 'https://unpkg.com/js-yaml@4/dist/js-yaml.min.js';
+                    script.onload = function() {
+                        const spec = jsyaml.load(yamlContent);
+                        
+                        window.ui = SwaggerUIBundle({
+                            spec: spec,
+                            dom_id: '#swagger-ui',
+                            deepLinking: true,
+                            presets: [
+                                SwaggerUIBundle.presets.apis,
+                                SwaggerUIStandalonePreset
+                            ],
+                            plugins: [
+                                SwaggerUIBundle.plugins.DownloadUrl
+                            ],
+                            layout: "StandaloneLayout",
+                            defaultModelsExpandDepth: 1,
+                            defaultModelExpandDepth: 1,
+                            docExpansion: 'list',
+                            filter: true,
+                            showExtensions: true,
+                            showCommonExtensions: true,
+                            tryItOutEnabled: true
+                        });
+                    };
+                    document.head.appendChild(script);
+                })
+                .catch(error => {
+                    console.error('Error loading OpenAPI spec:', error);
+                    document.getElementById('swagger-ui').innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: #666;">
+                            <h2>Unable to load API documentation</h2>
+                            <p>Make sure you're serving this file from a web server, not opening it directly.</p>
+                            <p>Run: <code>php -S localhost:8000</code> from the docs folder</p>
+                        </div>
+                    `;
+                });
+        };
+    </script>
+</body>
+</html>

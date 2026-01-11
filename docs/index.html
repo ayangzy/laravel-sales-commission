@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravel Sales Commission - Enterprise Commission Management for Laravel</title>
+    <meta name="description" content="A comprehensive, enterprise-grade commission calculation and management package for Laravel SaaS applications.">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --dark: #1e1e2e;
+            --light: #f8fafc;
+            --gray: #64748b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--light);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--dark) 0%, #2d2d44 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        header p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 5px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--dark);
+        }
+        
+        .btn-success {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        /* Features */
+        .features {
+            padding: 80px 0;
+        }
+        
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        
+        .feature-card .icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .feature-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .feature-card p {
+            color: var(--gray);
+        }
+        
+        /* Pricing */
+        .pricing {
+            background: var(--dark);
+            color: white;
+            padding: 80px 0;
+        }
+        
+        .pricing h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .price-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: border-color 0.3s;
+        }
+        
+        .price-card:hover {
+            border-color: var(--primary);
+        }
+        
+        .price-card.featured {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+        
+        .price-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .price-card .price {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+        
+        .price-card .price span {
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+        
+        .price-card ul {
+            list-style: none;
+            text-align: left;
+            margin: 30px 0;
+        }
+        
+        .price-card li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .price-card li::before {
+            content: "✓ ";
+            color: var(--secondary);
+        }
+        
+        /* Comparison */
+        .comparison {
+            padding: 80px 0;
+        }
+        
+        .comparison h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+        }
+        
+        .comparison table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .comparison th, .comparison td {
+            padding: 20px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .comparison th {
+            background: var(--dark);
+            color: white;
+        }
+        
+        .comparison td:nth-child(2), .comparison td:nth-child(3) {
+            text-align: center;
+        }
+        
+        .check { color: var(--secondary); font-size: 1.5rem; }
+        .cross { color: #ef4444; font-size: 1.5rem; }
+        
+        /* CTA */
+        .cta {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+        
+        .cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .cta p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+        
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+        
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 { font-size: 2rem; }
+            header p { font-size: 1rem; }
+            .price-card.featured { transform: none; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <span class="badge">📦 Laravel Package</span>
+            <h1>Laravel Sales Commission</h1>
+            <p>Enterprise-grade commission calculation and management for Laravel SaaS applications</p>
+            <a href="https://github.com/ayangzy/laravel-sales-commission" class="btn btn-primary">⭐ Star on GitHub</a>
+            <a href="#pricing" class="btn btn-secondary">Get Pro Version</a>
+        </div>
+    </header>
+    
+    <section class="features">
+        <div class="container">
+            <h2>Everything You Need</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h3>Flexible Plans</h3>
+                    <p>Create multiple commission plans with custom rules for different agent types</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h3>Multi-Tier Structures</h3>
+                    <p>Bronze, Silver, Gold progression based on cumulative sales volume</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">👥</div>
+                    <h3>Team Splits</h3>
+                    <p>Divide commissions among team members with role-based percentages</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔄</div>
+                    <h3>Clawback Support</h3>
+                    <p>Handle refunds and chargebacks with configurable grace periods</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">💰</div>
+                    <h3>Payout Management</h3>
+                    <p>Generate, approve, and process payouts with hold periods</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎛️</div>
+                    <h3>Custom Rules</h3>
+                    <p>Extensible rule engine for any commission logic you need</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="comparison">
+        <div class="container">
+            <h2>Free vs Pro</h2>
+            <table>
+                <tr>
+                    <th>Feature</th>
+                    <th>Free</th>
+                    <th>Pro</th>
+                </tr>
+                <tr>
+                    <td>Commission Plans & Tiers</td>
+                    <td><span class="check">✓</span></td>
+                    <td><span class="check">✓</span></td>
+                </tr>
+                <tr>
+                    <td>Team Splits</td>
+                    <td><span class="check">✓</span></td>
+                    <td><span class="check">✓</span></td>
+                </tr>
+                <tr>
+                    <td>Clawbacks & Payouts</td>
+                    <td><span class="check">✓</span></td>
+                    <td><span class="check">✓</span></td>
+                </tr>
+                <tr>
+                    <td>Admin Dashboard (Filament)</td>
+                    <td><span class="cross">✗</span></td>
+                    <td><span class="check">✓</span></td>
+                </tr>
+                <tr>
+                    <td>Advanced Reporting</td>
+                    <td><span class="cross">✗</span></td>
+                    <td><span class="check">✓</span></td>
+                </tr>
+                <tr>
+                    <td>Configurable Currency (40+ symbols)</td>
+                    <td><span class="cross">✗</span></td>
+                    <td><span class="check">✓</span></td>
+                </tr>
+                <tr>
+                    <td>API Endpoints</td>
+                    <td><span class="cross">✗</span></td>
+                    <td><span class="check">✓</span></td>
+                </tr>
+                <tr>
+                    <td>Priority Support</td>
+                    <td><span class="cross">✗</span></td>
+                    <td><span class="check">✓</span></td>
+                </tr>
+            </table>
+        </div>
+    </section>
+    
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <h2>Simple Pricing</h2>
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <h3>🆓 Free</h3>
+                    <div class="price">$0 <span>forever</span></div>
+                    <ul>
+                        <li>All core features</li>
+                        <li>Unlimited plans & tiers</li>
+                        <li>Team splits & clawbacks</li>
+                        <li>Payout management</li>
+                        <li>Community support</li>
+                    </ul>
+                    <a href="https://github.com/ayangzy/laravel-sales-commission" class="btn btn-secondary">Get Started Free</a>
+                </div>
+                <div class="price-card featured">
+                    <h3>🚀 Pro</h3>
+                    <div class="price">$99 <span>one-time</span></div>
+                    <ul>
+                        <li>Everything in Free</li>
+                        <li>Admin Dashboard</li>
+                        <li>Advanced Reporting</li>
+                        <li>Configurable Currency</li>
+                        <li>API Endpoints</li>
+                        <li>1 year updates</li>
+                        <li>Priority Email Support</li>
+                    </ul>
+                    <a href="#" class="btn btn-success">Buy Pro License</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Get Started?</h2>
+            <p>Join hundreds of developers using Laravel Sales Commission</p>
+            <a href="https://github.com/ayangzy/laravel-sales-commission" class="btn btn-secondary">View on GitHub</a>
+            <a href="https://github.com/sponsors/ayangzy" class="btn btn-secondary">💖 Sponsor</a>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="container">
+            <p>Made with ❤️ by <a href="https://github.com/ayangzy">Ayangzy</a></p>
+            <p style="margin-top: 10px; opacity: 0.7;">MIT License • © 2026</p>
+        </div>
+    </footer>
+</body>
+</html>

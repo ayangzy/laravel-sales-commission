@@ -22,14 +22,10 @@
 | Recurring Commission Tracking  |         ❌         |      ✅      |
 | Custom Rule Builder UI         |         ❌         |      ✅      |
 | API Endpoints                  |         ❌         |      ✅      |
-| Export to CSV/Excel            |         ❌         |      ✅      |
 | Audit Logs                     |         ❌         |      ✅      |
-| White-Label Options            |         ❌         |      ✅      |
 | **Support**                    |                    |              |
 | Community Support (GitHub)     |         ✅         |      ✅      |
 | Priority Email Support         |         ❌         |      ✅      |
-| Video Call Support             |         ❌         |      ✅      |
-| Implementation Assistance      |         ❌         |      ✅      |
 
 ---
 

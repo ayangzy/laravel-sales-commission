@@ -31,7 +31,7 @@ class ListPayouts extends ListRecords
                 ->action(function (array $data) {
                     $payout = Payout::generate($data['period']);
                     
-                    if ($payout->total_earnings_count === 0) {
+                    if (!$payout || $payout->total_earnings_count === 0) {
                         Notification::make()
                             ->warning()
                             ->title('No Earnings Found')

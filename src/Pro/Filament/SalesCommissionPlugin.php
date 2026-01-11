@@ -28,6 +28,7 @@ class SalesCommissionPlugin implements Plugin
                 Resources\PayoutResource::class,
                 Resources\ClawbackResource::class,
                 Resources\CommissionSplitResource::class,
+                Resources\AgentResource::class,
             ])
             ->pages([
                 Pages\CommissionDashboard::class,

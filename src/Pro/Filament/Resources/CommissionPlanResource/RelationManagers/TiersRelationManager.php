@@ -52,16 +52,16 @@ class TiersRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('min_threshold')
                     ->label('Min')
-                    ->money('USD'),
+                    ->money(config('sales-commission.currency', 'USD')),
                 Tables\Columns\TextColumn::make('max_threshold')
                     ->label('Max')
-                    ->money('USD')
+                    ->money(config('sales-commission.currency', 'USD'))
                     ->placeholder('∞'),
                 Tables\Columns\TextColumn::make('rate')
                     ->suffix('%'),
                 Tables\Columns\TextColumn::make('bonus_amount')
                     ->label('Bonus')
-                    ->money('USD')
+                    ->money(config('sales-commission.currency', 'USD'))
                     ->placeholder('-'),
             ])
             ->headerActions([

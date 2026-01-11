@@ -51,7 +51,7 @@ class PayoutResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('total_amount')
                     ->label('Amount')
-                    ->money('USD')
+                    ->money(fn ($record) => $record->currency ?? config('sales-commission.currency', 'USD'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('total_earnings_count')
                     ->label('Earnings'),

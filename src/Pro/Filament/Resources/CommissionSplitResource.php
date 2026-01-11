@@ -81,13 +81,13 @@ class CommissionSplitResource extends Resource
 
                 Tables\Columns\TextColumn::make('split_amount')
                     ->label('Amount')
-                    ->money('USD')
+                    ->money(config('sales-commission.currency', 'USD'))
                     ->sortable()
                     ->color('success'),
 
                 Tables\Columns\TextColumn::make('earning.base_amount')
                     ->label('Sale Total')
-                    ->money('USD')
+                    ->money(config('sales-commission.currency', 'USD'))
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('created_at')

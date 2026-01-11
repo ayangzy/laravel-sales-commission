@@ -43,7 +43,7 @@ class TopEarnersWidget extends BaseWidget
 
             Tables\Columns\TextColumn::make('total_earned')
                 ->label('Earned')
-                ->money('USD')
+                ->money(config('sales-commission.currency', 'USD'))
                 ->sortable()
                 ->color('success')
                 ->weight('bold'),

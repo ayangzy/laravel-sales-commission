@@ -30,7 +30,7 @@ class ClawbackResource extends Resource
                     ->label('Earning')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('amount')
-                    ->money('USD')
+                    ->money(config('sales-commission.currency', 'USD'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('reason')
                     ->badge()

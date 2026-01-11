@@ -57,11 +57,11 @@ class CommissionEarningResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('base_amount')
                     ->label('Sale Amount')
-                    ->money('USD')
+                    ->money(fn ($record) => $record->currency ?? config('sales-commission.currency', 'USD'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('commission_amount')
                     ->label('Commission')
-                    ->money('USD')
+                    ->money(fn ($record) => $record->currency ?? config('sales-commission.currency', 'USD'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('rate')
                     ->suffix('%')

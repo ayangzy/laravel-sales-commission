@@ -50,13 +50,13 @@ class AgentResource extends Resource
 
                 Tables\Columns\TextColumn::make('total_sales')
                     ->label('Total Sales')
-                    ->money('USD')
+                    ->money(config('sales-commission.currency', 'USD'))
                     ->sortable()
                     ->color('primary'),
 
                 Tables\Columns\TextColumn::make('total_earned')
                     ->label('Total Earned')
-                    ->money('USD')
+                    ->money(config('sales-commission.currency', 'USD'))
                     ->sortable()
                     ->color('success'),
 

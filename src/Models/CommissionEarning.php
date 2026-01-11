@@ -33,6 +33,7 @@ class CommissionEarning extends Model
         'commission_amount',
         'rate',
         'rate_type',
+        'currency',
         'status',
         'period',
         'earned_at',

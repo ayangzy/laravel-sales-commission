@@ -43,7 +43,7 @@ class BonusAwardsWidget extends BaseWidget
 
             Tables\Columns\TextColumn::make('commission_amount')
                 ->label('Bonus')
-                ->money('USD')
+                ->money(config('sales-commission.currency', 'USD'))
                 ->color('success')
                 ->weight('bold'),
 

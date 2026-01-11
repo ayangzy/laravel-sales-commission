@@ -136,48 +136,43 @@ class Payout extends Model
     public static function generate(string $period): ?self
     {
         // Get config values
-        $minThreshold = config('sales-commission.payout.min_threshold', 0);
-        $holdPeriodDays = config('sales-commission.payout.hold_period_days', 0);
+        $holdPeriodDays = (int) config('sales-commission.payout.hold_period_days', 0);
 
-        // Query for payable earnings for this period that have passed the hold period
-        $earningsQuery = CommissionEarning::payable()
+        // Query for payable earnings for this period
+        $query = CommissionEarning::where('status', CommissionEarning::STATUS_PAYABLE)
+            ->whereNull('payout_id')
             ->where('period', $period);
         
+        // Apply hold period if configured
         if ($holdPeriodDays > 0) {
-            $earningsQuery->where('earned_at', '<=', now()->subDays($holdPeriodDays));
+            $query->where('earned_at', '<=', now()->subDays($holdPeriodDays));
         }
 
         // Get all matching earnings
-        $allEarnings = $earningsQuery->get();
+        $earnings = $query->get();
 
-        // Filter by agent min threshold
-        $qualifiedEarnings = $allEarnings
-            ->groupBy(function ($earning) {
-                return $earning->agent_type . ':' . $earning->agent_id;
-            })
-            ->filter(function ($earnings) use ($minThreshold) {
-                return $earnings->sum('commission_amount') >= $minThreshold;
-            })
-            ->flatten();
-
-        // If no qualified earnings, return null (don't create empty payout)
-        if ($qualifiedEarnings->isEmpty()) {
+        // If no earnings found, return null
+        if ($earnings->isEmpty()) {
             return null;
         }
 
-        // Create the payout only if we have earnings
+        // Calculate totals - cast to float to handle decimal strings
+        $totalAmount = $earnings->sum(fn ($e) => (float) $e->commission_amount);
+        $earningsCount = $earnings->count();
+
+        // Create the payout
         $payout = static::create([
             'period' => $period,
             'status' => self::STATUS_DRAFT,
-            'total_amount' => $qualifiedEarnings->sum('commission_amount'),
-            'total_earnings_count' => $qualifiedEarnings->count(),
+            'total_amount' => $totalAmount,
+            'total_earnings_count' => $earningsCount,
         ]);
 
         // Attach earnings to payout
-        $qualifiedEarnings->each(function ($earning) use ($payout) {
-            $earning->update(['payout_id' => $payout->id]);
-        });
+        CommissionEarning::whereIn('id', $earnings->pluck('id'))
+            ->update(['payout_id' => $payout->id]);
 
+        // Update status
         if (config('sales-commission.payout.auto_approve', false)) {
             $payout->approve();
         } else {

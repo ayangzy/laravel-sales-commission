@@ -143,9 +143,16 @@ class Payout extends Model
 
         // Attach payable earnings
         $minThreshold = config('sales-commission.payout.min_threshold', 0);
+        $holdPeriodDays = config('sales-commission.payout.hold_period_days', 0);
 
-        CommissionEarning::payable()
-            ->get()
+        // Query for payable earnings that have passed the hold period
+        $earningsQuery = CommissionEarning::payable();
+        
+        if ($holdPeriodDays > 0) {
+            $earningsQuery->where('earned_at', '<=', now()->subDays($holdPeriodDays));
+        }
+
+        $earningsQuery->get()
             ->groupBy(function ($earning) {
                 return $earning->agent_type . ':' . $earning->agent_id;
             })

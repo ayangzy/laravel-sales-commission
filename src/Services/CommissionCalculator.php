@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use SalesCommission\Contracts\Commissionable;
 use SalesCommission\Contracts\CommissionAgent;
+use SalesCommission\Events\CommissionEarned;
 use SalesCommission\Models\CommissionEarning;
 use SalesCommission\Models\CommissionPlan;
 use SalesCommission\Models\CommissionRule;
@@ -109,6 +110,14 @@ class CommissionCalculator
         // Auto-approve if configured
         if (config('sales-commission.payout.auto_approve', false)) {
             $earning->approve();
+        }
+
+        // Evaluate tier progression for the agent
+        $this->evaluateTierProgression($agent, $plan);
+
+        // Fire commission earned event
+        if (config('sales-commission.events.commission_earned', true)) {
+            event(new CommissionEarned($earning));
         }
 
         // Reset state for next calculation
@@ -431,5 +440,19 @@ class CommissionCalculator
         $this->plan = null;
         $this->tier = null;
         $this->context = [];
+    }
+
+    /**
+     * Evaluate tier progression for an agent after commission calculation.
+     */
+    protected function evaluateTierProgression($agent, CommissionPlan $plan): void
+    {
+        if (!config('sales-commission.events.tier_achieved', true)) {
+            return;
+        }
+
+        // Use TierEvaluator service to check for tier changes
+        $evaluator = new TierEvaluator();
+        $evaluator->evaluate($agent, $plan);
     }
 }

@@ -27,9 +27,17 @@ class SalesCommissionPlugin implements Plugin
                 Resources\CommissionEarningResource::class,
                 Resources\PayoutResource::class,
                 Resources\ClawbackResource::class,
+                Resources\CommissionSplitResource::class,
             ])
             ->pages([
                 Pages\CommissionDashboard::class,
+            ])
+            ->widgets([
+                Widgets\CommissionStatsWidget::class,
+                Widgets\EarningsTrendWidget::class,
+                Widgets\TopEarnersWidget::class,
+                Widgets\TierDistributionWidget::class,
+                Widgets\RecentActivityWidget::class,
             ]);
     }
 

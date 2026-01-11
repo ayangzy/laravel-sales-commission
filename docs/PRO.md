@@ -47,21 +47,6 @@
 
 ---
 
-### 💼 Custom Development
-
-Need custom features or integrations?
-
-**$150/hour** for custom development
-
-- Custom commission rules
-- Payment provider integrations (Stripe, PayPal, Wise)
-- ERP/CRM integrations
-- Custom reporting
-
-[Request a Quote →](#)
-
----
-
 ## Pro Features Preview
 
 ### Admin Dashboard (Filament)
@@ -103,13 +88,10 @@ RESTful API for integrating with external systems:
 ## FAQ
 
 **Q: Do I need a license for each project?**
-A: Yes, the Pro license is per-project. Contact us for multi-project discounts.
+A: Yes, the Pro license is per-project.
 
 **Q: What happens after 1 year?**
 A: You keep using the version you have. Renew for $49/year to get updates.
-
-**Q: Can I get a refund?**
-A: Yes, 30-day money-back guarantee.
 
 **Q: Is the source code included?**
 A: Yes, you get full source code for Pro features.
@@ -123,4 +105,4 @@ A: Yes, you get full source code for Pro features.
 
 ---
 
-_Questions? Email pro@ayangzy.com_
+_Questions? Email ayangefelix8@gmail.com_

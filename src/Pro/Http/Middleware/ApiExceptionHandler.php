@@ -43,9 +43,23 @@ class ApiExceptionHandler
                 ], 404);
             }
             
+            // Try to extract model info from the message
+            $message = $e->getMessage();
+            if (preg_match('/No query results for model \[([^\]]+)\]/', $message, $matches)) {
+                $fullModel = $matches[1];
+                $model = class_basename($fullModel);
+                $modelName = $this->humanizeModelName($model);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => "{$modelName} not found.",
+                    'error_code' => 'RESOURCE_NOT_FOUND',
+                ], 404);
+            }
+            
             return response()->json([
                 'success' => false,
-                'message' => 'The requested route was not found.',
+                'message' => 'The requested resource was not found.',
                 'error_code' => 'ROUTE_NOT_FOUND',
             ], 404);
         } catch (AuthenticationException $e) {

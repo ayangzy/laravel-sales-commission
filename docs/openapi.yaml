@@ -1,0 +1,2318 @@
+openapi: 3.0.3
+info:
+  title: Laravel Sales Commission Pro API
+  description: |
+    Comprehensive REST API for managing sales commissions in Laravel applications.
+
+    ## Authentication
+    All endpoints require Bearer token authentication via Laravel Sanctum.
+
+    ```bash
+    curl -H "Authorization: Bearer YOUR_API_TOKEN" \
+         -H "Accept: application/json" \
+         https://your-app.com/api/commissions/plans
+    ```
+
+    ## Base URL
+    All endpoints are prefixed with `/api/commissions`
+  version: 1.0.0
+  contact:
+    email: ayangefelix8@gmail.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://your-app.com/api/commissions
+    description: Production server
+  - url: http://localhost/api/commissions
+    description: Local development
+
+tags:
+  - name: Commission Plans
+    description: Manage commission plans and their configuration
+  - name: Commission Tiers
+    description: Manage tier structures within plans
+  - name: Commission Rules
+    description: Manage commission calculation rules
+  - name: Earnings
+    description: Track and manage commission earnings
+  - name: Payouts
+    description: Generate, approve, and process payouts
+  - name: Clawbacks
+    description: Handle commission reversals
+  - name: Agents
+    description: Agent-specific earnings and statistics
+  - name: Splits
+    description: Team commission splits
+  - name: Calculate
+    description: Commission calculation endpoints
+  - name: Statistics
+    description: Analytics and reporting
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum Token
+
+  schemas:
+    CommissionPlan:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Standard Sales Plan"
+        slug:
+          type: string
+          example: "standard"
+        description:
+          type: string
+          nullable: true
+          example: "Default commission plan for sales team"
+        is_active:
+          type: boolean
+          example: true
+        is_default:
+          type: boolean
+          example: true
+        tiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommissionTier"
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommissionRule"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CommissionTier:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        plan_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Gold"
+        min_threshold:
+          type: number
+          format: float
+          example: 50000.00
+        max_threshold:
+          type: number
+          format: float
+          nullable: true
+          example: null
+        rate:
+          type: number
+          format: float
+          example: 10.00
+        bonus_amount:
+          type: number
+          format: float
+          nullable: true
+          example: 500.00
+
+    CommissionRule:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        plan_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Base Commission"
+        type:
+          type: string
+          enum: [percentage, fixed, tiered, bonus_threshold]
+          example: "percentage"
+        value:
+          type: number
+          format: float
+          example: 10.00
+        priority:
+          type: integer
+          example: 1
+        is_active:
+          type: boolean
+          example: true
+        conditions:
+          type: object
+          nullable: true
+
+    CommissionEarning:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ulid
+          example: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+        agent_id:
+          type: string
+          example: "1"
+        agent_type:
+          type: string
+          example: "App\\Models\\User"
+        plan_id:
+          type: integer
+          example: 1
+        tier_id:
+          type: integer
+          nullable: true
+        base_amount:
+          type: number
+          format: float
+          example: 1000.00
+        commission_amount:
+          type: number
+          format: float
+          example: 100.00
+        rate:
+          type: number
+          format: float
+          example: 10.00
+        rate_type:
+          type: string
+          enum: [percentage, fixed]
+          example: "percentage"
+        status:
+          type: string
+          enum: [pending, payable, paid, clawed_back]
+          example: "payable"
+        period:
+          type: string
+          example: "2026-01"
+        earned_at:
+          type: string
+          format: date-time
+        payout_id:
+          type: string
+          format: ulid
+          nullable: true
+
+    Payout:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ulid
+          example: "01HXK8VDKPWF9G5QJCNM2RY6T4"
+        period:
+          type: string
+          example: "2026-01"
+        total_amount:
+          type: number
+          format: float
+          example: 5000.00
+        total_earnings_count:
+          type: integer
+          example: 15
+        status:
+          type: string
+          enum: [draft, pending_approval, approved, paid, failed]
+          example: "pending_approval"
+        notes:
+          type: string
+          nullable: true
+        approved_by:
+          type: integer
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        processed_at:
+          type: string
+          format: date-time
+          nullable: true
+        payment_reference:
+          type: string
+          nullable: true
+          example: "TXN-12345"
+        payment_method:
+          type: string
+          nullable: true
+          example: "bank_transfer"
+
+    Clawback:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ulid
+        earning_id:
+          type: string
+          format: ulid
+        amount:
+          type: number
+          format: float
+          example: 50.00
+        reason:
+          type: string
+          enum: [refund, chargeback, cancellation, manual]
+          example: "refund"
+        notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    CommissionSplit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ulid
+        earning_id:
+          type: string
+          format: ulid
+        agent_id:
+          type: string
+        agent_type:
+          type: string
+        role:
+          type: string
+          example: "primary"
+        split_percentage:
+          type: number
+          format: float
+          example: 60.00
+        split_amount:
+          type: number
+          format: float
+          example: 60.00
+
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        last_page:
+          type: integer
+          example: 5
+        per_page:
+          type: integer
+          example: 15
+        total:
+          type: integer
+          example: 75
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "The given data was invalid."
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ========================================
+  # COMMISSION PLANS
+  # ========================================
+  /plans:
+    get:
+      tags:
+        - Commission Plans
+      summary: List all commission plans
+      parameters:
+        - name: active_only
+          in: query
+          schema:
+            type: boolean
+          description: Filter to show only active plans
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search plans by name
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 15
+          description: Items per page
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CommissionPlan"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+              example:
+                success: true
+                data:
+                  - id: 1
+                    name: "Standard Sales Plan"
+                    slug: "standard"
+                    description: "Default commission plan"
+                    is_active: true
+                    is_default: true
+                    tiers:
+                      - id: 1
+                        name: "Bronze"
+                        min_threshold: 0
+                        max_threshold: 10000
+                        rate: 5.00
+                      - id: 2
+                        name: "Silver"
+                        min_threshold: 10000
+                        max_threshold: 50000
+                        rate: 7.50
+                      - id: 3
+                        name: "Gold"
+                        min_threshold: 50000
+                        max_threshold: null
+                        rate: 10.00
+                    rules:
+                      - id: 1
+                        name: "Base Commission"
+                        type: "tiered"
+                        value: 0
+                        priority: 1
+                        is_active: true
+                meta:
+                  current_page: 1
+                  last_page: 1
+                  per_page: 15
+                  total: 1
+    post:
+      tags:
+        - Commission Plans
+      summary: Create a new commission plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - slug
+              properties:
+                name:
+                  type: string
+                  example: "Enterprise Plan"
+                slug:
+                  type: string
+                  example: "enterprise"
+                description:
+                  type: string
+                  example: "High-value client commission plan"
+                is_active:
+                  type: boolean
+                  example: true
+                is_default:
+                  type: boolean
+                  example: false
+      responses:
+        "201":
+          description: Plan created successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission plan created successfully."
+                data:
+                  id: 2
+                  name: "Enterprise Plan"
+                  slug: "enterprise"
+                  description: "High-value client commission plan"
+                  is_active: true
+                  is_default: false
+                  tiers: []
+                  rules: []
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "The given data was invalid."
+                errors:
+                  slug:
+                    - "The slug has already been taken."
+
+  /plans/{id}:
+    get:
+      tags:
+        - Commission Plans
+      summary: Get a specific commission plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  id: 1
+                  name: "Standard Sales Plan"
+                  slug: "standard"
+                  description: "Default commission plan"
+                  is_active: true
+                  is_default: true
+                  tiers:
+                    - id: 1
+                      name: "Bronze"
+                      min_threshold: 0
+                      max_threshold: 10000
+                      rate: 5.00
+                      bonus_amount: null
+                    - id: 2
+                      name: "Silver"
+                      min_threshold: 10000
+                      max_threshold: 50000
+                      rate: 7.50
+                      bonus_amount: 100.00
+                    - id: 3
+                      name: "Gold"
+                      min_threshold: 50000
+                      max_threshold: null
+                      rate: 10.00
+                      bonus_amount: 500.00
+                  rules:
+                    - id: 1
+                      name: "Base Commission"
+                      type: "tiered"
+                      value: 0
+                      priority: 1
+                      is_active: true
+        "404":
+          description: Plan not found
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Commission plan not found."
+
+    put:
+      tags:
+        - Commission Plans
+      summary: Update a commission plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                slug:
+                  type: string
+                description:
+                  type: string
+                is_active:
+                  type: boolean
+                is_default:
+                  type: boolean
+      responses:
+        "200":
+          description: Plan updated successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission plan updated successfully."
+                data:
+                  id: 1
+                  name: "Updated Plan Name"
+                  slug: "standard"
+                  is_active: true
+                  is_default: true
+
+    delete:
+      tags:
+        - Commission Plans
+      summary: Delete a commission plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Plan deleted successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission plan deleted successfully."
+
+  /plans/{id}/activate:
+    post:
+      tags:
+        - Commission Plans
+      summary: Activate a commission plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Plan activated
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission plan activated."
+                data:
+                  id: 1
+                  name: "Standard Sales Plan"
+                  is_active: true
+
+  /plans/{id}/deactivate:
+    post:
+      tags:
+        - Commission Plans
+      summary: Deactivate a commission plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Plan deactivated
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission plan deactivated."
+                data:
+                  id: 1
+                  name: "Standard Sales Plan"
+                  is_active: false
+
+  /plans/{id}/set-default:
+    post:
+      tags:
+        - Commission Plans
+      summary: Set a plan as the default
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Plan set as default
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission plan set as default."
+                data:
+                  id: 1
+                  name: "Standard Sales Plan"
+                  is_default: true
+
+  # ========================================
+  # COMMISSION TIERS
+  # ========================================
+  /plans/{plan_id}/tiers:
+    get:
+      tags:
+        - Commission Tiers
+      summary: List all tiers for a plan
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: 1
+                    name: "Bronze"
+                    min_threshold: 0
+                    max_threshold: 10000
+                    rate: 5.00
+                    bonus_amount: null
+                  - id: 2
+                    name: "Silver"
+                    min_threshold: 10000
+                    max_threshold: 50000
+                    rate: 7.50
+                    bonus_amount: 100.00
+                  - id: 3
+                    name: "Gold"
+                    min_threshold: 50000
+                    max_threshold: null
+                    rate: 10.00
+                    bonus_amount: 500.00
+
+    post:
+      tags:
+        - Commission Tiers
+      summary: Create a new tier
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - min_threshold
+                - rate
+              properties:
+                name:
+                  type: string
+                  example: "Platinum"
+                min_threshold:
+                  type: number
+                  example: 100000
+                max_threshold:
+                  type: number
+                  nullable: true
+                  example: null
+                rate:
+                  type: number
+                  example: 12.50
+                bonus_amount:
+                  type: number
+                  nullable: true
+                  example: 1000.00
+      responses:
+        "201":
+          description: Tier created successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission tier created successfully."
+                data:
+                  id: 4
+                  name: "Platinum"
+                  min_threshold: 100000
+                  max_threshold: null
+                  rate: 12.50
+                  bonus_amount: 1000.00
+
+  /tiers/{id}:
+    get:
+      tags:
+        - Commission Tiers
+      summary: Get a specific tier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  id: 3
+                  name: "Gold"
+                  min_threshold: 50000
+                  max_threshold: null
+                  rate: 10.00
+                  bonus_amount: 500.00
+
+    put:
+      tags:
+        - Commission Tiers
+      summary: Update a tier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                min_threshold:
+                  type: number
+                max_threshold:
+                  type: number
+                rate:
+                  type: number
+                bonus_amount:
+                  type: number
+      responses:
+        "200":
+          description: Tier updated successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission tier updated successfully."
+                data:
+                  id: 3
+                  name: "Gold Elite"
+                  rate: 12.00
+
+    delete:
+      tags:
+        - Commission Tiers
+      summary: Delete a tier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tier deleted successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission tier deleted successfully."
+
+  # ========================================
+  # COMMISSION RULES
+  # ========================================
+  /plans/{plan_id}/rules:
+    get:
+      tags:
+        - Commission Rules
+      summary: List all rules for a plan
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: 1
+                    name: "Base Commission"
+                    type: "tiered"
+                    value: 0
+                    priority: 1
+                    is_active: true
+                    conditions: null
+                  - id: 2
+                    name: "Quarterly Bonus"
+                    type: "bonus_threshold"
+                    value: 500
+                    priority: 2
+                    is_active: true
+                    conditions:
+                      threshold: 25000
+                      period: "quarter"
+
+    post:
+      tags:
+        - Commission Rules
+      summary: Create a new rule
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - type
+                - value
+              properties:
+                name:
+                  type: string
+                  example: "Weekend Bonus"
+                type:
+                  type: string
+                  enum: [percentage, fixed, tiered, bonus_threshold]
+                  example: "fixed"
+                value:
+                  type: number
+                  example: 25.00
+                priority:
+                  type: integer
+                  example: 3
+                is_active:
+                  type: boolean
+                  example: true
+                conditions:
+                  type: object
+                  example:
+                    day_of_week: ["saturday", "sunday"]
+      responses:
+        "201":
+          description: Rule created successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission rule created successfully."
+                data:
+                  id: 3
+                  name: "Weekend Bonus"
+                  type: "fixed"
+                  value: 25.00
+                  priority: 3
+                  is_active: true
+
+  /rules/{id}:
+    get:
+      tags:
+        - Commission Rules
+      summary: Get a specific rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+
+    put:
+      tags:
+        - Commission Rules
+      summary: Update a rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                value:
+                  type: number
+                priority:
+                  type: integer
+                is_active:
+                  type: boolean
+                conditions:
+                  type: object
+      responses:
+        "200":
+          description: Rule updated successfully
+
+    delete:
+      tags:
+        - Commission Rules
+      summary: Delete a rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Rule deleted successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission rule deleted successfully."
+
+  # ========================================
+  # EARNINGS
+  # ========================================
+  /earnings:
+    get:
+      tags:
+        - Earnings
+      summary: List all commission earnings
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, payable, paid, clawed_back]
+          description: Filter by status
+        - name: period
+          in: query
+          schema:
+            type: string
+          description: Filter by period (YYYY-MM format)
+          example: "2026-01"
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+          description: Filter by agent ID
+        - name: plan_id
+          in: query
+          schema:
+            type: integer
+          description: Filter by plan ID
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Start date filter
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: End date filter
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 15
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                    agent_id: "1"
+                    agent_type: "App\\Models\\User"
+                    base_amount: 1000.00
+                    commission_amount: 100.00
+                    rate: 10.00
+                    rate_type: "percentage"
+                    status: "payable"
+                    period: "2026-01"
+                    earned_at: "2026-01-15T10:30:00Z"
+                  - id: "01HXK8VDKPWF9G5QJCNM2RY6T4"
+                    agent_id: "1"
+                    agent_type: "App\\Models\\User"
+                    base_amount: 2500.00
+                    commission_amount: 250.00
+                    rate: 10.00
+                    rate_type: "percentage"
+                    status: "paid"
+                    period: "2026-01"
+                    earned_at: "2026-01-10T14:20:00Z"
+                meta:
+                  current_page: 1
+                  last_page: 3
+                  per_page: 15
+                  total: 42
+
+  /earnings/{id}:
+    get:
+      tags:
+        - Earnings
+      summary: Get a specific earning
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                  agent_id: "1"
+                  agent_type: "App\\Models\\User"
+                  commissionable_type: "App\\Models\\Order"
+                  commissionable_id: "456"
+                  plan_id: 1
+                  tier_id: 3
+                  base_amount: 1000.00
+                  commission_amount: 100.00
+                  rate: 10.00
+                  rate_type: "percentage"
+                  status: "payable"
+                  period: "2026-01"
+                  earned_at: "2026-01-15T10:30:00Z"
+                  approved_at: "2026-01-15T11:00:00Z"
+                  metadata:
+                    order_number: "ORD-12345"
+                    customer_name: "John Doe"
+
+  /earnings/{id}/mark-payable:
+    post:
+      tags:
+        - Earnings
+      summary: Mark an earning as payable
+      description: Transitions an earning from pending to payable status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Earning marked as payable
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Earning marked as payable."
+                data:
+                  id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                  status: "payable"
+        "400":
+          description: Invalid status transition
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Earning is not in pending status."
+
+  /earnings/by-agent/{agent_id}:
+    get:
+      tags:
+        - Earnings
+      summary: Get earnings by agent with summary
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: period
+          in: query
+          schema:
+            type: string
+          description: Filter by period (YYYY-MM)
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                    base_amount: 1000.00
+                    commission_amount: 100.00
+                    status: "payable"
+                    earned_at: "2026-01-15T10:30:00Z"
+                summary:
+                  pending: 500.00
+                  payable: 1200.00
+                  paid: 8500.00
+                  clawed_back: 150.00
+                  total_earned: 10350.00
+
+  /earnings/by-period/{period}:
+    get:
+      tags:
+        - Earnings
+      summary: Get earnings for a specific period
+      parameters:
+        - name: period
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "2026-01"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                    agent_id: "1"
+                    commission_amount: 100.00
+                    status: "payable"
+                summary:
+                  total_earnings: 15000.00
+                  earnings_count: 45
+                  by_status:
+                    pending: 2000.00
+                    payable: 8000.00
+                    paid: 5000.00
+
+  # ========================================
+  # PAYOUTS
+  # ========================================
+  /payouts:
+    get:
+      tags:
+        - Payouts
+      summary: List all payouts
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, pending_approval, approved, paid, failed]
+        - name: period
+          in: query
+          schema:
+            type: string
+          example: "2026-01"
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 15
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: "01HXK8VDKPWF9G5QJCNM2RY6T4"
+                    period: "2026-01"
+                    total_amount: 5000.00
+                    total_earnings_count: 15
+                    status: "pending_approval"
+                    created_at: "2026-01-31T12:00:00Z"
+                  - id: "01HXK8VDKPWF9G5QJCNM2RY6T5"
+                    period: "2025-12"
+                    total_amount: 4500.00
+                    total_earnings_count: 12
+                    status: "paid"
+                    processed_at: "2026-01-05T09:30:00Z"
+                meta:
+                  current_page: 1
+                  last_page: 2
+                  per_page: 15
+                  total: 24
+
+  /payouts/{id}:
+    get:
+      tags:
+        - Payouts
+      summary: Get a specific payout with earnings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  id: "01HXK8VDKPWF9G5QJCNM2RY6T4"
+                  period: "2026-01"
+                  total_amount: 5000.00
+                  total_earnings_count: 15
+                  status: "pending_approval"
+                  earnings:
+                    - id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                      agent_id: "1"
+                      commission_amount: 100.00
+                    - id: "01HXK8VDKPWF9G5QJCNM2RY6T6"
+                      agent_id: "2"
+                      commission_amount: 250.00
+
+  /payouts/pending:
+    get:
+      tags:
+        - Payouts
+      summary: Get all pending payouts
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: "01HXK8VDKPWF9G5QJCNM2RY6T4"
+                    period: "2026-01"
+                    total_amount: 5000.00
+                    status: "pending_approval"
+                count: 1
+
+  /payouts/generate:
+    post:
+      tags:
+        - Payouts
+      summary: Generate payout for a period
+      description: Creates a new payout batch for all payable earnings in the specified period
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - period
+              properties:
+                period:
+                  type: string
+                  example: "2026-01"
+      responses:
+        "200":
+          description: Payout generated successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Payout generated successfully."
+                data:
+                  id: "01HXK8VDKPWF9G5QJCNM2RY6T7"
+                  period: "2026-01"
+                  total_amount: 5000.00
+                  total_earnings_count: 15
+                  status: "draft"
+        "400":
+          description: No payable earnings found
+          content:
+            application/json:
+              example:
+                success: false
+                message: "No payable earnings found for this period."
+
+  /payouts/{id}/approve:
+    post:
+      tags:
+        - Payouts
+      summary: Approve a payout
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Payout approved
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Payout approved successfully."
+                data:
+                  id: "01HXK8VDKPWF9G5QJCNM2RY6T4"
+                  status: "approved"
+                  approved_at: "2026-01-31T14:30:00Z"
+                  approved_by: 1
+
+  /payouts/{id}/reject:
+    post:
+      tags:
+        - Payouts
+      summary: Reject a payout
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  example: "Incomplete documentation"
+      responses:
+        "200":
+          description: Payout rejected
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Payout rejected."
+                data:
+                  id: "01HXK8VDKPWF9G5QJCNM2RY6T4"
+                  status: "draft"
+                  notes: "Incomplete documentation"
+
+  /payouts/{id}/process:
+    post:
+      tags:
+        - Payouts
+      summary: Process/mark payout as paid
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                payment_reference:
+                  type: string
+                  example: "TXN-12345"
+                payment_method:
+                  type: string
+                  example: "bank_transfer"
+      responses:
+        "200":
+          description: Payout processed
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Payout processed successfully."
+                data:
+                  id: "01HXK8VDKPWF9G5QJCNM2RY6T4"
+                  status: "paid"
+                  processed_at: "2026-02-01T10:00:00Z"
+                  payment_reference: "TXN-12345"
+                  payment_method: "bank_transfer"
+
+  # ========================================
+  # CLAWBACKS
+  # ========================================
+  /clawbacks:
+    get:
+      tags:
+        - Clawbacks
+      summary: List all clawbacks
+      parameters:
+        - name: reason
+          in: query
+          schema:
+            type: string
+            enum: [refund, chargeback, cancellation, manual]
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 15
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: "01HXK8VDKPWF9G5QJCNM2RY6T8"
+                    earning_id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                    amount: 100.00
+                    reason: "refund"
+                    notes: "Customer requested refund"
+                    created_at: "2026-01-20T11:00:00Z"
+
+    post:
+      tags:
+        - Clawbacks
+      summary: Create a full clawback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - earning_id
+                - reason
+              properties:
+                earning_id:
+                  type: string
+                  example: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                reason:
+                  type: string
+                  enum: [refund, chargeback, cancellation, manual]
+                  example: "refund"
+                notes:
+                  type: string
+                  example: "Customer requested full refund"
+      responses:
+        "201":
+          description: Clawback created
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Clawback created successfully."
+                data:
+                  id: "01HXK8VDKPWF9G5QJCNM2RY6T9"
+                  earning_id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                  amount: 100.00
+                  reason: "refund"
+                  notes: "Customer requested full refund"
+
+  /clawbacks/{id}:
+    get:
+      tags:
+        - Clawbacks
+      summary: Get a specific clawback
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+
+  /clawbacks/partial:
+    post:
+      tags:
+        - Clawbacks
+      summary: Create a partial clawback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - earning_id
+                - refund_amount
+                - reason
+              properties:
+                earning_id:
+                  type: string
+                  example: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                refund_amount:
+                  type: number
+                  example: 250.00
+                reason:
+                  type: string
+                  enum: [refund, chargeback, cancellation, manual]
+                  example: "refund"
+                notes:
+                  type: string
+                  example: "Partial refund for returned item"
+      responses:
+        "201":
+          description: Partial clawback created
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Partial clawback created successfully."
+                data:
+                  id: "01HXK8VDKPWF9G5QJCNM2RYABC"
+                  earning_id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                  amount: 25.00
+                  reason: "refund"
+                  notes: "Partial refund for returned item"
+
+  /clawbacks/for-commissionable:
+    post:
+      tags:
+        - Clawbacks
+      summary: Clawback all earnings for a commissionable
+      description: Creates clawbacks for all earnings associated with a specific order/transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - commissionable_type
+                - commissionable_id
+                - reason
+              properties:
+                commissionable_type:
+                  type: string
+                  example: "App\\Models\\Order"
+                commissionable_id:
+                  type: string
+                  example: "456"
+                reason:
+                  type: string
+                  enum: [refund, chargeback, cancellation, manual]
+                  example: "cancellation"
+                notes:
+                  type: string
+                  example: "Order cancelled"
+      responses:
+        "201":
+          description: Clawbacks created
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Created 2 clawback(s) for commissionable."
+                data:
+                  clawbacks_created: 2
+                  total_amount: 175.00
+
+  # ========================================
+  # AGENTS
+  # ========================================
+  /agents/{agent_id}/earnings:
+    get:
+      tags:
+        - Agents
+      summary: Get agent earnings
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: agent_type
+          in: query
+          schema:
+            type: string
+          description: Agent model class (defaults to User)
+        - name: period
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                    base_amount: 1000.00
+                    commission_amount: 100.00
+                    status: "payable"
+                    period: "2026-01"
+
+  /agents/{agent_id}/total:
+    get:
+      tags:
+        - Agents
+      summary: Get agent total earnings summary
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: period
+          in: query
+          schema:
+            type: string
+          description: Optional period filter (YYYY-MM), defaults to all-time
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  agent_id: "1"
+                  period: "all_time"
+                  total_earned: 15000.00
+                  total_paid: 12000.00
+                  total_pending: 1500.00
+                  total_payable: 1500.00
+                  total_sales: 150000.00
+                  total_transactions: 45
+
+  /agents/{agent_id}/pending:
+    get:
+      tags:
+        - Agents
+      summary: Get agent pending earnings
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  agent_id: "1"
+                  pending_amount: 500.00
+                  pending_count: 3
+                  earnings:
+                    - id: "01HXK8VDKPWF9G5QJCNM2RYDEF"
+                      commission_amount: 200.00
+                      status: "pending"
+                      earned_at: "2026-01-25T09:00:00Z"
+
+  /agents/{agent_id}/tier:
+    get:
+      tags:
+        - Agents
+      summary: Get agent current tier
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: plan
+          in: query
+          schema:
+            type: string
+          description: Plan slug (uses default plan if not specified)
+          example: "standard"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  agent_id: "1"
+                  plan: "standard"
+                  cumulative_sales: 75000.00
+                  current_tier:
+                    id: 3
+                    name: "Gold"
+                    rate: 10.00
+                    min_threshold: 50000.00
+                  next_tier: null
+                  progress_to_next: null
+
+  /agents/{agent_id}/payouts:
+    get:
+      tags:
+        - Agents
+      summary: Get agent payout history
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: "01HXK8VDKPWF9G5QJCNM2RY6T5"
+                    period: "2025-12"
+                    amount: 1200.00
+                    status: "paid"
+                    processed_at: "2026-01-05T09:30:00Z"
+
+  # ========================================
+  # SPLITS
+  # ========================================
+  /splits:
+    get:
+      tags:
+        - Splits
+      summary: List all commission splits
+      parameters:
+        - name: earning_id
+          in: query
+          schema:
+            type: string
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 15
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: "01HXK8VDKPWF9G5QJCNM2RYGHI"
+                    earning_id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                    agent_id: "1"
+                    role: "primary"
+                    split_percentage: 60.00
+                    split_amount: 60.00
+                  - id: "01HXK8VDKPWF9G5QJCNM2RYJKL"
+                    earning_id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                    agent_id: "2"
+                    role: "support"
+                    split_percentage: 40.00
+                    split_amount: 40.00
+
+  /splits/{id}:
+    get:
+      tags:
+        - Splits
+      summary: Get a specific split
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+
+  /splits/calculate:
+    post:
+      tags:
+        - Splits
+      summary: Calculate and create splits for an earning
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - earning_id
+                - splits
+              properties:
+                earning_id:
+                  type: string
+                  example: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                splits:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      agent_id:
+                        type: string
+                      agent_type:
+                        type: string
+                      percentage:
+                        type: number
+                      role:
+                        type: string
+                  example:
+                    - agent_id: "1"
+                      agent_type: "App\\Models\\User"
+                      percentage: 60
+                      role: "Closer"
+                    - agent_id: "2"
+                      agent_type: "App\\Models\\User"
+                      percentage: 40
+                      role: "Opener"
+      responses:
+        "201":
+          description: Splits created
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission splits created successfully."
+                data:
+                  earning_id: "01HXK8VDKPWF9G5QJCNM2RY6T3"
+                  original_amount: 100.00
+                  splits:
+                    - agent_id: "1"
+                      role: "Closer"
+                      percentage: 60.00
+                      amount: 60.00
+                    - agent_id: "2"
+                      role: "Opener"
+                      percentage: 40.00
+                      amount: 40.00
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Split percentages must total 100%."
+
+  # ========================================
+  # CALCULATE
+  # ========================================
+  /calculate:
+    post:
+      tags:
+        - Calculate
+      summary: Calculate and create a commission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - agent_id
+                - agent_type
+              properties:
+                amount:
+                  type: number
+                  example: 1000.00
+                agent_id:
+                  type: string
+                  example: "1"
+                agent_type:
+                  type: string
+                  example: "App\\Models\\User"
+                plan:
+                  type: string
+                  description: Plan slug (uses default if not specified)
+                  example: "standard"
+                commissionable_type:
+                  type: string
+                  example: "App\\Models\\Order"
+                commissionable_id:
+                  type: string
+                  example: "123"
+                meta:
+                  type: object
+                  example:
+                    order_source: "website"
+                    customer_type: "new"
+      responses:
+        "201":
+          description: Commission calculated and saved
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Commission calculated successfully."
+                data:
+                  id: "01HXK8VDKPWF9G5QJCNM2RYMNO"
+                  agent_id: "1"
+                  base_amount: 1000.00
+                  commission_amount: 100.00
+                  rate: 10.00
+                  rate_type: "percentage"
+                  tier:
+                    name: "Gold"
+                    rate: 10.00
+                  status: "pending"
+                  period: "2026-01"
+
+  /calculate/batch:
+    post:
+      tags:
+        - Calculate
+      summary: Calculate commissions in batch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - items
+              properties:
+                plan:
+                  type: string
+                  example: "standard"
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      amount:
+                        type: number
+                      agent_id:
+                        type: string
+                      agent_type:
+                        type: string
+                      commissionable_type:
+                        type: string
+                      commissionable_id:
+                        type: string
+                  example:
+                    - amount: 1000
+                      agent_id: "1"
+                      agent_type: "App\\Models\\User"
+                    - amount: 2000
+                      agent_id: "2"
+                      agent_type: "App\\Models\\User"
+      responses:
+        "201":
+          description: Batch processed successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Batch calculation complete."
+                data:
+                  processed: 2
+                  total_commission: 250.00
+                  earnings:
+                    - id: "01HXK8VDKPWF9G5QJCNM2RYPQR"
+                      agent_id: "1"
+                      commission_amount: 100.00
+                    - id: "01HXK8VDKPWF9G5QJCNM2RYSTU"
+                      agent_id: "2"
+                      commission_amount: 150.00
+
+  /calculate/preview:
+    post:
+      tags:
+        - Calculate
+      summary: Preview commission without saving
+      description: Calculates what the commission would be without creating a record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: number
+                  example: 1000.00
+                plan:
+                  type: string
+                  example: "standard"
+                agent_id:
+                  type: string
+                  description: Optional - used for tier calculation based on cumulative sales
+      responses:
+        "200":
+          description: Preview calculation
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  base_amount: 1000.00
+                  plan:
+                    id: 1
+                    name: "Standard Sales Plan"
+                    slug: "standard"
+                  tier:
+                    name: "Gold"
+                    rate: 10.00
+                  estimated_rate: 10.00
+                  estimated_commission: 100.00
+                  note: "This is an estimate. Actual commission may vary based on rules and conditions."
+
+  # ========================================
+  # STATISTICS
+  # ========================================
+  /stats/overview:
+    get:
+      tags:
+        - Statistics
+      summary: Get commission overview statistics
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+          description: Period to get stats for (YYYY-MM)
+          example: "2026-01"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  current_period: "2026-01"
+                  earnings_this_period: 25000.00
+                  earnings_last_period: 22000.00
+                  earnings_change_percent: 13.64
+                  pending_payouts: 5000.00
+                  paid_this_month: 18000.00
+                  clawbacks_this_month: 500.00
+                  active_plans: 3
+                  net_commissions_this_month: 24500.00
+
+  /stats/earnings:
+    get:
+      tags:
+        - Statistics
+      summary: Get earnings over time
+      parameters:
+        - name: months
+          in: query
+          schema:
+            type: integer
+            default: 12
+          description: Number of months to include
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: Filter by status
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - period: "2026-01"
+                    total: 25000.00
+                    count: 75
+                  - period: "2025-12"
+                    total: 22000.00
+                    count: 68
+                  - period: "2025-11"
+                    total: 19500.00
+                    count: 62
+
+  /stats/payouts:
+    get:
+      tags:
+        - Statistics
+      summary: Get payout statistics
+      parameters:
+        - name: months
+          in: query
+          schema:
+            type: integer
+            default: 12
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - period: "2026-01"
+                    total_paid: 18000.00
+                    payout_count: 3
+                  - period: "2025-12"
+                    total_paid: 15000.00
+                    payout_count: 2
+
+  /stats/top-earners:
+    get:
+      tags:
+        - Statistics
+      summary: Get top earning agents
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: period
+          in: query
+          schema:
+            type: string
+          example: "2026-01"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - rank: 1
+                    agent_id: "5"
+                    total_earned: 3500.00
+                    sales_count: 12
+                  - rank: 2
+                    agent_id: "3"
+                    total_earned: 2800.00
+                    sales_count: 9
+                  - rank: 3
+                    agent_id: "1"
+                    total_earned: 2100.00
+                    sales_count: 8
+
+  /stats/by-plan:
+    get:
+      tags:
+        - Statistics
+      summary: Get earnings breakdown by plan
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+          example: "2026-01"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - plan_id: 1
+                    plan_name: "Standard Sales Plan"
+                    total_earnings: 20000.00
+                    earnings_count: 60
+                    percentage: 80.00
+                  - plan_id: 2
+                    plan_name: "Premium Plan"
+                    total_earnings: 5000.00
+                    earnings_count: 15
+                    percentage: 20.00
+
+  /stats/trends:
+    get:
+      tags:
+        - Statistics
+      summary: Get daily earnings trends
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+          description: Number of days to include
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - date: "2026-01-15"
+                    earnings: 1250.00
+                    count: 4
+                  - date: "2026-01-14"
+                    earnings: 980.00
+                    count: 3
+                  - date: "2026-01-13"
+                    earnings: 1500.00
+                    count: 5

@@ -15,6 +15,14 @@ Whether you're building an e-commerce platform with sales reps, a SaaS with an a
 
 ---
 
+## 🚀 Pro Features
+
+Want advanced features like **Admin Dashboard**, **REST API**, and **Analytics**?
+
+[**View Pro Features →**](https://ayangzy.github.io/laravel-sales-commission/)
+
+---
+
 ## Key Features
 
 ### 🎯 Flexible Commission Plans

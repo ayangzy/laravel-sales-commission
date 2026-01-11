@@ -33,23 +33,24 @@ class CommissionDashboard extends Dashboard
     {
         return $form
             ->schema([
-                Section::make()
+                Section::make('Filter Dashboard Data')
+                    ->description('Select a date range to filter all dashboard statistics and reports')
                     ->schema([
                         DatePicker::make('start_date')
-                            ->label('From')
+                            ->label('Start Date')
                             ->default(now()->startOfMonth())
                             ->maxDate(now())
                             ->native(false)
                             ->displayFormat('M d, Y'),
                         DatePicker::make('end_date')
-                            ->label('To')
+                            ->label('End Date')
                             ->default(now())
                             ->maxDate(now())
                             ->native(false)
                             ->displayFormat('M d, Y'),
                     ])
                     ->columns(2)
-                    ->compact(),
+                    ->collapsible(),
             ]);
     }
 
@@ -58,10 +59,10 @@ class CommissionDashboard extends Dashboard
         return [
             CommissionStatsWidget::class,
             EarningsTrendWidget::class,
-            TopEarnersWidget::class,
-            BonusAwardsWidget::class,
-            TierDistributionWidget::class,
-            RecentActivityWidget::class,
+            TopEarnersWidget::class,      // Column 1 (with BonusAwards below)
+            BonusAwardsWidget::class,     // Column 1 (below TopEarners)
+            RecentActivityWidget::class,  // Column 2 (with TierDistribution below)
+            TierDistributionWidget::class, // Column 2 (below RecentActivity)
         ];
     }
 
@@ -70,8 +71,8 @@ class CommissionDashboard extends Dashboard
         return [
             'default' => 1,
             'sm' => 2,
-            'lg' => 3,
-            'xl' => 3,
+            'lg' => 2,
+            'xl' => 2,
         ];
     }
 }

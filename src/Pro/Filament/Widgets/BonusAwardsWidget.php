@@ -44,7 +44,7 @@ class BonusAwardsWidget extends BaseWidget
 
             Tables\Columns\TextColumn::make('commission_amount')
                 ->label('Bonus')
-                ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->currency))
+                ->formatStateUsing(fn ($state) => CurrencyHelper::format((float) $state))
                 ->color('success')
                 ->weight('bold'),
 

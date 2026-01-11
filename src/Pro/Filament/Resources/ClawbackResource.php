@@ -31,7 +31,7 @@ class ClawbackResource extends Resource
                     ->label('Earning')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('amount')
-                    ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->earning?->currency))
+                    ->formatStateUsing(fn ($state) => CurrencyHelper::format((float) $state))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('reason')
                     ->badge()

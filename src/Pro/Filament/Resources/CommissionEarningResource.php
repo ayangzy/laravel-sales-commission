@@ -58,11 +58,11 @@ class CommissionEarningResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('base_amount')
                     ->label('Sale Amount')
-                    ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->currency))
+                    ->formatStateUsing(fn ($state) => CurrencyHelper::format((float) $state))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('commission_amount')
                     ->label('Commission')
-                    ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->currency))
+                    ->formatStateUsing(fn ($state) => CurrencyHelper::format((float) $state))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('rate')
                     ->suffix('%')

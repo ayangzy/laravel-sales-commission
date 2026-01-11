@@ -82,13 +82,13 @@ class CommissionSplitResource extends Resource
 
                 Tables\Columns\TextColumn::make('split_amount')
                     ->label('Amount')
-                    ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->earning?->currency))
+                    ->formatStateUsing(fn ($state) => CurrencyHelper::format((float) $state))
                     ->sortable()
                     ->color('success'),
 
                 Tables\Columns\TextColumn::make('earning.base_amount')
                     ->label('Sale Total')
-                    ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->earning?->currency))
+                    ->formatStateUsing(fn ($state) => CurrencyHelper::format((float) $state))
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('created_at')

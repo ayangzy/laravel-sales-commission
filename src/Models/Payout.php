@@ -172,13 +172,12 @@ class Payout extends Model
         $totalAmount = $earnings->sum(fn ($e) => (float) $e->commission_amount);
         $earningsCount = $earnings->count();
 
-        // Create the payout with current currency
+        // Create the payout
         $payout = static::create([
             'period' => $period,
             'status' => self::STATUS_DRAFT,
             'total_amount' => $totalAmount,
             'total_earnings_count' => $earningsCount,
-            'currency' => config('sales-commission.currency', 'USD'),
         ]);
 
         // Attach earnings to payout

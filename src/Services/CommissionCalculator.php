@@ -101,7 +101,6 @@ class CommissionCalculator
             'commission_amount' => $commissionAmount,
             'rate' => $this->getAppliedRate($rules, $tier),
             'rate_type' => $this->getAppliedRateType($rules, $tier),
-            'currency' => config('sales-commission.currency', 'USD'),
             'status' => CommissionEarning::STATUS_PENDING,
             'period' => $earnedAt->format('Y-m'),
             'earned_at' => $earnedAt,

@@ -52,7 +52,7 @@ class PayoutResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('total_amount')
                     ->label('Amount')
-                    ->formatStateUsing(fn ($state, $record) => CurrencyHelper::format((float) $state, $record->currency))
+                    ->formatStateUsing(fn ($state) => CurrencyHelper::format((float) $state))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('total_earnings_count')
                     ->label('Earnings'),

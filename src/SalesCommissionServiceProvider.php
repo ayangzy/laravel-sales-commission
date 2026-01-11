@@ -4,6 +4,7 @@ namespace SalesCommission;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
+use SalesCommission\Exceptions\SalesCommissionExceptionHandler;
 use SalesCommission\Services\CommissionCalculator;
 use SalesCommission\Pro\LicenseManager;
 
@@ -65,6 +66,9 @@ class SalesCommissionServiceProvider extends ServiceProvider
 
         // Load Pro routes if licensed
         $this->bootProRoutes();
+
+        // Register centralized exception handlers for all commission API routes
+        SalesCommissionExceptionHandler::register();
     }
 
     /**

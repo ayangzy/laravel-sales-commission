@@ -77,7 +77,7 @@ Set your preferred currency system-wide:
 
 ### API Endpoints
 
-RESTful API for integrating with external systems:
+RESTful API for integrating with external systems: see docs here: [API Docs]({base_url}/api/commissions/docs)
 
 ---
 

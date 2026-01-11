@@ -5,7 +5,7 @@ info:
     Comprehensive REST API for managing sales commissions in Laravel applications.
 
     ## Authentication
-    All endpoints require Bearer token authentication via Laravel Sanctum.
+    Endpoints require Bearer token authentication. Works with Laravel Sanctum, Passport, JWT, or any Laravel auth guard.
 
     ```bash
     curl -H "Authorization: Bearer YOUR_API_TOKEN" \

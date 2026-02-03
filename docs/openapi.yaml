@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Laravel Sales Commission Pro API
+  title: Laravel Sales Commission API
   description: |
     Comprehensive REST API for managing sales commissions in Laravel applications.
 

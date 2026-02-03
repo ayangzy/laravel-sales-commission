@@ -339,18 +339,43 @@ class FirstSaleBonusRule extends BaseRule
 composer test
 ```
 
-## Pro Version
+## Admin Dashboard (Filament)
 
-Need advanced features? Check out [Laravel Sales Commission Pro](docs/PRO.md):
+This package includes a beautiful admin panel powered by Filament:
 
-- 🎨 Admin Dashboard (Filament)
-- 📊 Advanced Reporting & Analytics
-- 💱 Multi-Currency Support
-- 📅 Scheduled & Recurring Commissions
-- 🔌 API Endpoints
-- 📧 Priority Support
+```php
+// In your Filament PanelProvider
+use SalesCommission\Pro\Filament\SalesCommissionPlugin;
 
-[Learn more about Pro Features →](https://ayangzy.github.io/laravel-sales-commission/)
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        // ...
+        ->plugins([
+            SalesCommissionPlugin::make(),
+        ]);
+}
+```
+
+Features include:
+
+- View all commission plans and tiers
+- Track earnings by agent, period, status
+- Approve and process payouts
+- Generate reports
+- Manage clawbacks
+
+## API Endpoints
+
+RESTful API endpoints are available at `/api/commissions`:
+
+- `GET/POST /api/commissions/plans` - Manage commission plans
+- `GET /api/commissions/earnings` - View earnings
+- `POST /api/commissions/calculate` - Calculate commissions
+- `GET/POST /api/commissions/payouts` - Manage payouts
+- `GET /api/commissions/stats/overview` - Get stats
+
+API documentation available at `/api/commissions/docs`.
 
 ## Support the Project
 

@@ -1,6 +1,6 @@
 # Laravel Sales Commission - Complete Documentation
 
-**Version 1.0.0** | **Author: Ayangzy** | **January 2026**
+**Version 2.0.0** | **Author: Ayangzy** | **February 2026**
 
 ---
 
@@ -16,7 +16,10 @@
 8. [Events](#events)
 9. [Artisan Commands](#artisan-commands)
 10. [Testing](#testing)
-11. [API Reference](#api-reference)
+11. [Filament Admin Panel](#filament-admin-panel)
+12. [REST API Reference](#rest-api-reference)
+13. [API Reference](#api-reference)
+14. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -810,6 +813,233 @@ The package includes tests for:
 
 ---
 
+## Filament Admin Panel
+
+The package includes a beautiful admin panel powered by Filament.
+
+### Installation
+
+1. Install Filament (if not already installed):
+
+```bash
+composer require filament/filament:"^3.0"
+php artisan filament:install --panels
+```
+
+2. Register the plugin in `app/Providers/Filament/AdminPanelProvider.php`:
+
+```php
+use SalesCommission\Pro\Filament\SalesCommissionPlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        ->default()
+        ->id('admin')
+        ->path('admin')
+        // ... other config ...
+        ->plugins([
+            SalesCommissionPlugin::make(),
+        ]);
+}
+```
+
+3. Clear cache:
+
+```bash
+php artisan config:clear
+php artisan cache:clear
+```
+
+### Dashboard
+
+Navigate to `/admin` to access the commission management dashboard.
+
+The **Commission Dashboard** provides an overview of:
+
+- **Earnings This Month** - Total commissions earned in current period
+- **Pending Payouts** - Amount awaiting approval/processing
+- **Paid This Month** - Successfully processed payouts
+- **Clawbacks This Month** - Reversed commissions
+- **Active Plans** - Number of active commission plans
+
+### Managing Commission Plans
+
+Navigate to **Commissions → Commission Plans**
+
+#### Create a New Plan
+
+1. Click **New Commission Plan**
+2. Fill in:
+   - **Name**: e.g., "Standard Sales Plan"
+   - **Slug**: e.g., "standard" (used in code)
+   - **Description**: Optional description
+   - **Active**: Toggle on
+   - **Default**: Set as default plan
+
+#### Adding Tiers to a Plan
+
+1. Edit a plan
+2. Go to **Tiers** tab
+3. Click **Create Tier**
+4. Set:
+   - **Name**: e.g., "Bronze", "Silver", "Gold"
+   - **Min Threshold**: Minimum sales amount for this tier
+   - **Max Threshold**: Maximum (leave empty for unlimited)
+   - **Rate**: Commission percentage (e.g., 5, 7.5, 10)
+   - **Bonus Amount**: Optional one-time bonus for reaching tier
+
+#### Adding Rules to a Plan
+
+1. Edit a plan
+2. Go to **Rules** tab
+3. Click **Create Rule**
+4. Set:
+   - **Name**: e.g., "Base Commission"
+   - **Type**: percentage, fixed, tiered, or bonus_threshold
+   - **Value**: The rate or amount
+   - **Priority**: Lower numbers run first
+   - **Active**: Toggle on
+
+### Managing Earnings
+
+Navigate to **Commissions → Earnings**
+
+- View all commission earnings
+- Filter by status: Pending, Payable, Paid, Clawed Back
+- Filter by period (YYYY-MM format)
+- View earning details
+
+### Managing Payouts
+
+Navigate to **Commissions → Payouts**
+
+- View all payouts
+- **Approve**: Click approve button on pending payouts
+- **Process**: Mark approved payouts as paid
+- View payout details and associated earnings
+
+### Viewing Clawbacks
+
+Navigate to **Commissions → Clawbacks**
+
+- View all commission clawbacks
+- Filter by reason: Refund, Chargeback, Cancellation, Manual
+- See clawback amounts and dates
+
+---
+
+## REST API Reference
+
+All API endpoints are prefixed with `/api/commissions` and require authentication.
+
+### Authentication
+
+The API uses **Laravel Sanctum** for authentication. Include your API token in requests:
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_TOKEN" \
+     -H "Accept: application/json" \
+     https://your-app.com/api/commissions/plans
+```
+
+#### Getting an API Token
+
+Users can generate API tokens using Laravel Sanctum:
+
+```php
+// In your controller or via API
+$token = $user->createToken('commission-api')->plainTextToken;
+```
+
+### Commission Plans API
+
+| Method | Endpoint                                  | Description       |
+| ------ | ----------------------------------------- | ----------------- |
+| GET    | `/api/commissions/plans`                  | List all plans    |
+| POST   | `/api/commissions/plans`                  | Create a plan     |
+| GET    | `/api/commissions/plans/{id}`             | Get a single plan |
+| PUT    | `/api/commissions/plans/{id}`             | Update a plan     |
+| DELETE | `/api/commissions/plans/{id}`             | Delete a plan     |
+| POST   | `/api/commissions/plans/{id}/activate`    | Activate plan     |
+| POST   | `/api/commissions/plans/{id}/deactivate`  | Deactivate plan   |
+| POST   | `/api/commissions/plans/{id}/set-default` | Set as default    |
+
+### Commission Tiers API
+
+| Method | Endpoint                                 | Description           |
+| ------ | ---------------------------------------- | --------------------- |
+| GET    | `/api/commissions/plans/{plan_id}/tiers` | List tiers for a plan |
+| POST   | `/api/commissions/plans/{plan_id}/tiers` | Create a tier         |
+| PUT    | `/api/commissions/tiers/{id}`            | Update a tier         |
+| DELETE | `/api/commissions/tiers/{id}`            | Delete a tier         |
+
+### Commission Earnings API
+
+| Method | Endpoint                                        | Description        |
+| ------ | ----------------------------------------------- | ------------------ |
+| GET    | `/api/commissions/earnings`                     | List all earnings  |
+| GET    | `/api/commissions/earnings/{id}`                | Get single earning |
+| GET    | `/api/commissions/earnings/by-agent/{agent_id}` | Earnings by agent  |
+| GET    | `/api/commissions/earnings/by-period/{period}`  | Earnings by period |
+| POST   | `/api/commissions/earnings/{id}/mark-payable`   | Mark as payable    |
+
+### Payouts API
+
+| Method | Endpoint                                | Description                |
+| ------ | --------------------------------------- | -------------------------- |
+| GET    | `/api/commissions/payouts`              | List all payouts           |
+| GET    | `/api/commissions/payouts/pending`      | Get pending payouts        |
+| POST   | `/api/commissions/payouts/generate`     | Generate payout for period |
+| POST   | `/api/commissions/payouts/{id}/approve` | Approve payout             |
+| POST   | `/api/commissions/payouts/{id}/reject`  | Reject payout              |
+| POST   | `/api/commissions/payouts/{id}/process` | Process payout             |
+
+### Clawbacks API
+
+| Method | Endpoint                                        | Description                 |
+| ------ | ----------------------------------------------- | --------------------------- |
+| GET    | `/api/commissions/clawbacks`                    | List all clawbacks          |
+| GET    | `/api/commissions/clawbacks/{id}`               | Get single clawback         |
+| POST   | `/api/commissions/clawbacks`                    | Create full clawback        |
+| POST   | `/api/commissions/clawbacks/partial`            | Create partial clawback     |
+| POST   | `/api/commissions/clawbacks/for-commissionable` | Clawback for commissionable |
+
+### Agent API
+
+| Method | Endpoint                                      | Description          |
+| ------ | --------------------------------------------- | -------------------- |
+| GET    | `/api/commissions/agents/{agent_id}/earnings` | Get agent earnings   |
+| GET    | `/api/commissions/agents/{agent_id}/total`    | Get agent total      |
+| GET    | `/api/commissions/agents/{agent_id}/pending`  | Get pending earnings |
+| GET    | `/api/commissions/agents/{agent_id}/tier`     | Get current tier     |
+| GET    | `/api/commissions/agents/{agent_id}/payouts`  | Get agent payouts    |
+
+### Calculate Commission API
+
+| Method | Endpoint                             | Description                 |
+| ------ | ------------------------------------ | --------------------------- |
+| POST   | `/api/commissions/calculate`         | Calculate single commission |
+| POST   | `/api/commissions/calculate/batch`   | Calculate batch             |
+| POST   | `/api/commissions/calculate/preview` | Preview without saving      |
+
+### Statistics API
+
+| Method | Endpoint                             | Description        |
+| ------ | ------------------------------------ | ------------------ |
+| GET    | `/api/commissions/stats/overview`    | Get overview stats |
+| GET    | `/api/commissions/stats/earnings`    | Earnings over time |
+| GET    | `/api/commissions/stats/payouts`     | Payout statistics  |
+| GET    | `/api/commissions/stats/top-earners` | Top earners        |
+| GET    | `/api/commissions/stats/by-plan`     | Earnings by plan   |
+| GET    | `/api/commissions/stats/trends`      | Daily trends       |
+
+### API Documentation
+
+Interactive API documentation is available at `/api/commissions/docs`.
+
+---
+
 ## API Reference
 
 ### Facade Methods
@@ -881,10 +1111,33 @@ Commission::split($commissionable);
 
 ---
 
+## Troubleshooting
+
+### Admin Panel Not Showing
+
+1. Verify Filament is installed: `composer show filament/filament`
+2. Check plugin is registered in AdminPanelProvider
+3. Clear views: `php artisan view:clear`
+
+### API Returns 401 Unauthorized
+
+1. Check Bearer token is included in header
+2. Verify token is valid and not expired
+3. Ensure Sanctum middleware is configured
+4. Check user has permission
+
+### Memory Issues
+
+1. Increase PHP memory: `php -d memory_limit=1G artisan serve`
+2. Clear all caches: `php artisan optimize:clear`
+
+---
+
 ## Support
 
-- **Issues:** https://github.com/ayangzy/laravel-sales-commission/issues
-- **Source:** https://github.com/ayangzy/laravel-sales-commission
+- **Documentation**: https://github.com/ayangzy/laravel-sales-commission
+- **Issues**: https://github.com/ayangzy/laravel-sales-commission/issues
+- **Email**: ayangefelix8@gmail.com
 
 ## License
 
@@ -892,4 +1145,4 @@ The MIT License (MIT). See LICENSE.md for more information.
 
 ---
 
-_Documentation generated for Laravel Sales Commission v1.0.0_
+_Documentation generated for Laravel Sales Commission v2.0.0_

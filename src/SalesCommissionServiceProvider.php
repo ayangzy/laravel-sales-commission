@@ -6,7 +6,6 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use SalesCommission\Exceptions\SalesCommissionExceptionHandler;
 use SalesCommission\Services\CommissionCalculator;
-use SalesCommission\Pro\LicenseManager;
 
 class SalesCommissionServiceProvider extends ServiceProvider
 {
@@ -23,12 +22,6 @@ class SalesCommissionServiceProvider extends ServiceProvider
         $this->app->singleton('commission', function ($app) {
             return new CommissionCalculator();
         });
-
-        $this->app->singleton(LicenseManager::class, function ($app) {
-            return new LicenseManager();
-        });
-
-        $this->app->alias(LicenseManager::class, 'commission.license');
     }
 
     /**
@@ -44,7 +37,7 @@ class SalesCommissionServiceProvider extends ServiceProvider
             __DIR__ . '/../database/migrations' => database_path('migrations'),
         ], 'sales-commission-migrations');
 
-        // Load views for Pro features
+        // Load views
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'sales-commission');
 
         $this->publishes([
@@ -57,15 +50,14 @@ class SalesCommissionServiceProvider extends ServiceProvider
             $this->commands([
                 Commands\ProcessPayouts::class,
                 Commands\RecalculateTiers::class,
-                Commands\GenerateLicenseKey::class,
             ]);
         }
 
-        // Register Blade directives for Pro features
+        // Register Blade directives
         $this->registerBladeDirectives();
 
-        // Load Pro routes if licensed
-        $this->bootProRoutes();
+        // Load API routes
+        $this->bootApiRoutes();
 
         // Register centralized exception handlers for all commission API routes
         SalesCommissionExceptionHandler::register();
@@ -76,61 +68,20 @@ class SalesCommissionServiceProvider extends ServiceProvider
      */
     protected function registerBladeDirectives(): void
     {
+        // @pro directive always returns true (all features are now free)
         Blade::if('pro', function () {
-            return app(LicenseManager::class)->isValid();
+            return true;
         });
     }
 
     /**
-     * Boot Pro routes if license is valid.
+     * Boot API routes.
      */
-    protected function bootProRoutes(): void
+    protected function bootApiRoutes(): void
     {
-        // Only load routes, Filament resources are handled by the plugin
         if (file_exists(__DIR__ . '/Pro/routes/api.php')) {
-            if (app(LicenseManager::class)->isValid()) {
-                $this->loadRoutesFrom(__DIR__ . '/Pro/routes/api.php');
-            } else {
-                // Register fallback route for unlicensed access
-                $this->registerFallbackApiRoutes();
-            }
+            $this->loadRoutesFrom(__DIR__ . '/Pro/routes/api.php');
         }
-    }
-
-    /**
-     * Register fallback API routes when license is invalid.
-     */
-    protected function registerFallbackApiRoutes(): void
-    {
-        // Always register docs routes (viewable without license)
-        $this->registerDocsRoutes();
-        
-        // Register catch-all for other routes (requires license)
-        $this->app['router']->prefix('api/commissions')
-            ->middleware(['api'])
-            ->group(function ($router) {
-                $router->any('{any?}', function () {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Commission API is not available. Please ensure you have a valid Pro license key configured.',
-                        'error_code' => 'LICENSE_REQUIRED',
-                        'help' => 'Add your license key to .env: SALES_COMMISSION_PRO_KEY=SCPRO-XXXX-XXXX-XXXX-XXXX',
-                    ], 403);
-                })->where('any', '^(?!docs).*');  // Exclude docs from this catch-all
-            });
-    }
-
-    /**
-     * Register API documentation routes (always accessible).
-     */
-    protected function registerDocsRoutes(): void
-    {
-        $this->app['router']->prefix('api/commissions')
-            ->middleware(['api'])
-            ->group(function ($router) {
-                $router->get('docs', [\SalesCommission\Pro\Http\Controllers\Api\DocsController::class, 'index']);
-                $router->get('docs/openapi.yaml', [\SalesCommission\Pro\Http\Controllers\Api\DocsController::class, 'spec']);
-            });
     }
 }
 

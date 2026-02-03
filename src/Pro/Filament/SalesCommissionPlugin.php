@@ -14,13 +14,6 @@ class SalesCommissionPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        // Check license key directly from config to avoid container issues
-        $licenseKey = config('sales-commission.pro.license_key');
-        
-        if (empty($licenseKey) || !$this->isValidLicenseKey($licenseKey)) {
-            return;
-        }
-
         $panel
             ->resources([
                 Resources\CommissionPlanResource::class,
@@ -48,27 +41,6 @@ class SalesCommissionPlugin implements Plugin
         //
     }
 
-    /**
-     * Simple license key validation.
-     */
-    protected function isValidLicenseKey(?string $key): bool
-    {
-        if (empty($key)) {
-            return false;
-        }
-
-        // License format: SCPRO-XXXX-XXXX-XXXX-XXXX
-        if (!str_starts_with($key, 'SCPRO-')) {
-            return false;
-        }
-
-        if (strlen($key) < 24) {
-            return false;
-        }
-
-        return true;
-    }
-
     public static function make(): static
     {
         return new static();
@@ -82,4 +54,3 @@ class SalesCommissionPlugin implements Plugin
         return $plugin;
     }
 }
-

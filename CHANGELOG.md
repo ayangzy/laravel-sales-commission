@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-02-03
+
+### Changed
+
+- **Package is now completely free!** All features previously in Pro are now included at no cost
+- Removed license key requirement
+- Admin Dashboard (Filament) now included by default
+- API endpoints now available without license
+- All reporting and analytics features included
+
+### Removed
+
+- `LicenseManager` class
+- `GenerateLicenseKey` artisan command
+- Pro license configuration options
+
 ## [1.0.0] - 2026-01-10
 
 ### Added

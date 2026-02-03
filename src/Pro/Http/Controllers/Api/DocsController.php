@@ -13,7 +13,7 @@ class DocsController extends Controller
     public function index(): Response
     {
         $html = $this->getSwaggerHtml();
-        
+
         return response($html, 200)
             ->header('Content-Type', 'text/html');
     }
@@ -25,22 +25,22 @@ class DocsController extends Controller
     {
         // Navigate from src/Pro/Http/Controllers/Api to docs/
         $specPath = dirname(__DIR__, 5) . '/docs/openapi.yaml';
-        
+
         if (!file_exists($specPath)) {
             abort(404, 'OpenAPI specification not found at: ' . $specPath);
         }
-        
+
         // Replace server URLs with dynamic current URL
         $content = file_get_contents($specPath);
         $baseUrl = url('/api/commissions');
-        
+
         // Update servers section with current URL
         $content = preg_replace(
             '/servers:.*?tags:/s',
             "servers:\n  - url: {$baseUrl}\n    description: Current server\n\ntags:",
             $content
         );
-        
+
         return response($content, 200)
             ->header('Content-Type', 'application/x-yaml')
             ->header('Access-Control-Allow-Origin', '*');
@@ -52,7 +52,7 @@ class DocsController extends Controller
     protected function getSwaggerHtml(): string
     {
         $specUrl = url('/api/commissions/docs/openapi.yaml');
-        
+
         return <<<HTML
 <!DOCTYPE html>
 <html lang="en">
@@ -121,7 +121,7 @@ class DocsController extends Controller
     <div class="custom-header">
         <div style="display: flex; align-items: center;">
             <h1>📊 Laravel Sales Commission</h1>
-            <span class="badge">Pro API</span>
+            <span class="badge">API</span>
         </div>
         <div>
             <a href="https://github.com/ayangzy/laravel-sales-commission" target="_blank">GitHub</a>
